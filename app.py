@@ -8,5 +8,9 @@ app = Flask(__name__)
 app.debug = True
 
 @app.get('/')
-def index():
+def home():
     return render_template('index.html')
+
+@app.get('/about')
+def about():
+    return render_template('about.html')
