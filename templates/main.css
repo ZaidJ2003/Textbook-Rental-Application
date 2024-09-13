@@ -191,11 +191,7 @@ html {
     font-size: 12px;
     line-height: 1.5em;
 }
-* html #TB_overlay {
-    position: absolute;
-    height: expression(document.body.scrollHeight > document.body.offsetHeight ? document.body.scrollHeight: document.body.offsetHeight + 'px');
 
-}
 .top-bar .toggle-topbar.menu-icon a {
     text-indent: -48px;
     width: 34px;
@@ -206,9 +202,11 @@ html {
     text-align: center;
     top: 3px;
 }
+
 .book-info-social-table td.table-right {
     text-align: right;
 }
+
 body {
     font-size: 100%;
     font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
@@ -221,15 +219,19 @@ body {
     color: #333;
     -webkit-overflow-scrolling: touch;
 }
+
 .guide-step>img,.guide-step>p {
     text-align: center;
 }
+
 input:focus,textarea:focus {
     outline: none;
 }
+
 #nav a,#nav a img,audio,canvas,img,video {
     display: inline-block;
 }
+
 img {
     border: 0;
     max-width: 100%;
@@ -237,24 +239,30 @@ img {
     -ms-interpolation-mode: bicubic;
     vertical-align: middle;
 }
+
 .hidden {
     display: none;
 }
+
 #nav a img {
     vertical-align: baseline;
 }
+
 body,html {
     width: 100%;
     height: 100%;
     padding: 0;
     /*overflow-x: hidden;*/
 }
+
 .btn-compare:hover {
     box-shadow: 5px 5px 2px #424242, inset 1px 1px 0 rgba(255, 255, 255, .5), inset -1px -1px 0 rgba(0, 0, 0, .5);
 }
+
 body,figure,html {
     margin: 0;
 }
+
 .guide-step {
     padding: 50px 0;
     padding-left: .9375em;
@@ -262,9 +270,11 @@ body,figure,html {
     float: left;
     width: 33.33333%;
 }
+
 .guide-step>img {
     width: 125px;
 }
+
 .wrapper {
     width: 100%;
     max-width: 960px;
@@ -272,13 +282,16 @@ body,figure,html {
     overflow: auto;
     clear: both;
 }
+
 .buy-options-body thead tr th,.main {
     background: #deebbf;
 }
+
 .form-search,.txt-search {
     position: relative;
     width: 100%;
 }
+
 .form-search {
     -moz-box-shadow: 3px 3px 0 #84959c;
     zoom: 1;
@@ -292,6 +305,7 @@ body,figure,html {
     box-shadow: 3px 3px 0 #083537;
     -webkit-box-shadow: 3px 3px 0 #083537;
 }
+
 .txt-search {
     float: left;
     font-size: 1.16667em;
@@ -306,18 +320,22 @@ body,figure,html {
     border: 10px solid #000cb1!important;
     box-shadow: inset 3px 3px 6px rgba(0, 0, 0, .25);
 }
+
 .txt-search::-webkit-input-placeholder {
     font-weight: 100;
     color: #a9abae;
 }
+
 .txt-search:-moz-placeholder,.txt-search::-moz-placeholder {
     font-weight: 100;
     color: #a9abae;
 }
+
 .txt-search:-ms-input-placeholder {
     font-weight: 100;
     color: #a9abae;
 }
+
 .txt-search.big {
     height: 64px;
     border-width: 2px;
@@ -370,8 +388,12 @@ h2,h3,h4,h5,h6 {
     padding: 10px 10px 7px;
     /* margin: 5px 0; */
     border: none;
+    width: 100%;
 }
 .form-search:after,.form-search:before {
     content: " ";
     display: table;
+}
+.txt-search {
+    width: 100%;
 }
