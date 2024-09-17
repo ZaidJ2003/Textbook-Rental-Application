@@ -15,5 +15,13 @@ def home():
 def about():
     return render_template('about.html')
 
+@app.get('/login')
+def login():
+    return render_template('login.html')
+
+@app.get('/registration')
+def register():
+    return render_template('registration.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
