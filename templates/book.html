@@ -1,9 +1,19 @@
 {% extends '_layout.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Book Details{% endblock %}
 
 {% block body %}
-<div>
-    <p>single book page</p>
+<div class="book-container">
+    <div class="book-image">
+        <img src="{{ image_url }}" alt="{{ title }}">
+    </div>
+    <div class="book-details">
+        <h1 class="book-title">{{ title }}</h1>
+        <p class="book-description">{{ description }}</p>
+        <p class="book-price">{{ price }}</p>
+
+        <!-- this is just a placeholder button it will have to be a fourm later on to work with flask-->
+        <button class="book-buy-button">Buy Now</button>
+    </div>
 </div>
 {% endblock %}
