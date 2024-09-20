@@ -57,9 +57,9 @@ def about():
 def login():
     return render_template('login.html')
 
-@app.get('/registration')
+@app.get('/register')
 def register():
-    return render_template('registration.html')
+    return render_template('register.html')
 
 @app.get('/book')
 def book():
