@@ -3,45 +3,37 @@
 {% block title %}<title>Login</title>{% endblock %}
 
 {% block body %}
-<div class="container main-container">
-    <form action="/login" method="post" class="login-form">
+    <div class="container main-container">
+        <div class="row one bg-body-tertiary">
 
-            <div class="row one bg-body-tertiary">
-
-                <div class="col-md-6 side-image">
-                    <!-- <div class="text">
-                        <p>Welcome back!</p>   
-                    </div> -->
-                </div>
-    
-                <div class="col-md-6 right">
-                        
-                    <div class="input-box">
-                    
-                        <h1 class="text-center">Login</h1>
-                        <div class="input-field mt-3">
-                                <input type="text" class="input" name="username" id="username" class="form-control" required>
-                                <label for="username">Username or Email</label> 
-                        </div> 
-                        <div class="input-field">
-                                <input type="password" class="input" name="password" id="password" class="form-control" required>
-                                <label for="password">Password</label>
-                        </div> 
-                        <div class="input-field">
-                            <button type="submit" class="btn btn-login mb-4">Sign in</button>
-                        </div> 
-                        <div class="signin">
-                            <span>Don't have an account? <a href="register">Register here</a></span>
-                            
-                        </div>
-                        <div class="signin">
-                            <span>Forgot Password? <a href="request_password_reset">Reset Password</a></span>
-                        </div>
-                    
-                    </div>  
-                </div>
-    
+            <div class="col-md-6 container-left">
+                <!-- background image added in CSS -->
+                <!-- <div class="text">
+                    <p>Welcome back!</p>   
+                </div> -->
             </div>
-    </form>
-</div>
+
+            <div class="col-md-6 container-right">
+                <form action="/login" method="post" class="login-form input-box">
+                    <h1 class="text-center">Login</h1>
+                    <div class="input-field mt-3">
+                            <input type="text" class="input" name="username" id="username" class="form-control" required>
+                            <label for="username">Username or Email</label> 
+                    </div> 
+                    <div class="input-field">
+                            <input type="password" class="input" name="password" id="password" class="form-control" required>
+                            <label for="password">Password</label>
+                            <button type="submit" class="btn btn-login mb-4">Sign in</button>
+                    </div> 
+                    <div class="signin">
+                        <span>Don't have an account? <a href="register">Register here</a></span>
+                    </div>
+                    <div class="signin">
+                        <span>Forgot Password? <a href="request_password_reset">Reset Password</a></span>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
 {% endblock %}

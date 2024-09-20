@@ -29,6 +29,10 @@ header {
     top:0;
 }
 
+nav {
+    z-index: 1000;
+}
+
 main {
     grid-area: main;
 }
@@ -90,10 +94,10 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100%;
+    height: 100%;
 }
 
-.side-image{
+.container-left{
     background-image: url("/static/images/temp-book.jpg");
     background-size: contain;
     background-position: center;
@@ -105,6 +109,8 @@ footer {
 .one{
     width: 900px;
     height: 550px;
+    /* width:80%
+    height:80% */
     border-radius: 10px;
     background: #fff;
     padding: 0px;
@@ -138,7 +144,7 @@ i{
     font-size: 15px;
 }
 
-.right{
+.container-right{
     display: flex;
     justify-content: center;
     align-items: center;
@@ -146,15 +152,8 @@ i{
 }
 
 .input-box{
-    width: 330px;
+    width: 80%;
     box-sizing: border-box;
-}
-
-img > :not(.logo){
-    width: 35px;
-    position: absolute;
-    top: 30px;
-    left: 30px;
 }
 
 .input-field{
@@ -164,7 +163,7 @@ img > :not(.logo){
     padding: 0 10px 0 10px;
 }
 
-.input{
+.input {
     height: 45px;
     width: 100%;
     background: transparent;
@@ -241,7 +240,7 @@ span a:hover{
 }
 
 @media only screen and (max-width: 768px){
-    .side-image{
+    .container-left{
         border-radius: 10px 10px 0 0;
     }
     .text{
@@ -253,8 +252,7 @@ span a:hover{
         font-size: 16px;
     }
     .one, .two{
-        /* max-width:420px; */
-        width: 100%;
+        max-width:420px;
     }
 }
 
