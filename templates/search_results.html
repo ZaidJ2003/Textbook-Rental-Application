@@ -1,0 +1,36 @@
+{% extends '_layout.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block body %}
+  <h1 class="search-heading">Search Results for: {{ query }}</h1>
+  <form action="{{ url_for('search') }}" class="search-search-bar" method="GET">
+    <input type="text" placeholder="Search Textbook..." name="search_query">
+    <button type="submit"><img src="/static/images/search.png"></button>
+  </form>
+    
+    <div class="search-textbook-list">
+        {% for textbook in textbooks %}
+        <form action="{{ url_for('book') }}" method="get" class="search-textbook-form">
+          <input type="hidden" name="title" value="{{ textbook.title }}">
+          <input type="hidden" name="description" value="{{ textbook.description }}">
+          <input type="hidden" name="image_url" value="{{ textbook.image_url }}">
+          <input type="hidden" name="price" value="{{ textbook.price }}">
+          
+            <button type="submit" class="search-textbook">
+                <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
+                <div class="search-textbook-info">
+                    <h2 class="search-textbook-title">{{ textbook.title }}</h2>
+                    <p class="search-textbook-description">{{ textbook.description }}</p>
+                </div>
+                <div class="search-textbook-price">
+                    <p>{{ textbook.price }}</p>
+                </div>
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+    
+
+
+{% endblock %}

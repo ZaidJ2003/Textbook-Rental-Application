@@ -30,9 +30,10 @@
 </div> -->
 
 <div class="search-container">
-  <form action="" class="search-bar">
-    <input type="text" placeholder="Search Textbook..." name="search">
+  <form action="{{ url_for('search') }}" class="search-bar" method="GET">
+    <input type="text" placeholder="Search Textbook..." name="search_query">
     <button type="submit"><img src="/static/images/search.png"></button>
   </form>
 </div>
+
 {% endblock %}

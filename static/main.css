@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
 * {
     margin: 0;
     padding: 0;
@@ -7,15 +5,14 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, 1fr);
     grid-auto-rows: 75px auto 50px;
     grid-template-areas: 
-    "hd"
-    "main"
-    "ft";
+    "hd hd hd hd"
+    "main main main main"
+    "ft ft ft ft";
     margin: 0 0 var(--header-height) 0; 
 }
 
@@ -27,10 +24,6 @@ header {
     text-align: center;
     position: relative;
     top:0;
-}
-
-nav {
-    z-index: 1000;
 }
 
 main {
@@ -47,7 +40,6 @@ footer {
     bottom: 0;
     width: 100%;
     position: sticky;
-    z-index: 100;
     bottom: 0;
 }
 
@@ -90,174 +82,163 @@ footer {
     height: 50px;
 }
 
-.main-container{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
+/* .search-bar button {
+    border: 0;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    background: #585858;
+} */
 
-.container-left{
-    background-image: url("/static/images/temp-book.jpg");
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: 10px 0 0 10px;
-    position: relative;
-}
 
-.one{
-    width: 900px;
-    height: 550px;
-    /* width:80%
-    height:80% */
-    border-radius: 10px;
-    background: #fff;
-    padding: 0px;
-    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.2);
+/*zachary atkins start*/
+.search-search-bar {
+
+    width: 50%;
+    margin: 0 auto;
+    height: 75px;
     background-color: #41aea9;
-}
-
-.two{
-    width: 900px;
-    height: 700px;
-    border-radius: 10px;
-    background: #fff;
-    padding: 0px;
-    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.2);
-}
-
-.text{
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.text p {
-    color: #fff;
-    font-size: 20px; 
-}
-
-i{
-    font-weight: 400;
-    font-size: 15px;
-}
-
-.container-right{
     display: flex;
-    justify-content: center;
     align-items: center;
-    position: relative;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(4px) saturate(180%);
 }
 
-.input-box{
-    width: 80%;
-    box-sizing: border-box;
+.search-search-bar input {
+    background: transparent;
+    flex: 1;
+    border: 0;
+    outline: none;
+    padding: 24px 20px;
+    font-size:20px;
 }
 
-.input-field{
+.search-search-bar button img {
+    height: 50px;
+}
+
+.search-heading{
+    text-align: center;
+    padding: 20px;
+}
+
+
+.search-textbook-list {
     display: flex;
     flex-direction: column;
-    position: relative;
-    padding: 0 10px 0 10px;
+    gap: 20px;
 }
 
-.input {
-    height: 45px;
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-    outline: none;
-    margin-bottom: 20px;
-    color: #40414a;
-}
-
-.input-box .input-field label{
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    pointer-events: none;
-    transition: .5s;
-}
-
-.input-field input:focus ~ label{
-    top: -10px;
-    font-size: 13px;
-}
-
-.input-field input:valid ~ label{
-    top: -10px;
-    font-size: 13px;
-    color: #5d5076;
-}
-
-.input-field .input:focus, .input-field .input:valid{
-    border-bottom: 1px solid #743ae1;
-}
-
-.submit{
-    border: none;
-    outline: none;
-    height: 45px;
-    background: #ececec;
+.search-textbook {
+    display: flex;
+    align-items: center;
+    border: 2px solid #41aea9;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
     border-radius: 5px;
-    transition: .4s;
+    background-color: #f9f9f9;
+    justify-content: space-between;
+    width: 99%;
 }
 
-.submit:hover{
-    background: rgba(37, 95, 156, 0.937);
+.search-textbook:hover {
+    filter: brightness(90%);
+}
+
+.search-textbook-image {
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.search-textbook-info {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.search-textbook-title {
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: left;
+}
+
+.search-textbook-description {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #666;
+    text-align: left;
+}
+
+.search-textbook-price {
+    text-align: right;
+    min-width: 100px;
+    margin-right:10px;
+}
+
+.search-textbook-price p {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.book-container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.book-image img {
+    width: 300px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.book-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.book-title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.book-description {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.book-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.book-buy-button {
+    padding: 10px 20px;
+    font-size: 1rem;
     color: #fff;
-}
-
-.signin{
-    text-align: center;
-    font-size: small;
-    margin-top: 25px;
-}
-
-
-span a{
-    text-decoration: none;
-    font-weight: 700;
-    color: #000;
-    transition: .5s;
-}
-
-span a:hover{
-    text-decoration: underline;
-    color: #000;
-}
-
-.hidden {
-    visibility: hidden;
-}
-
-.btn-login {
     background-color: #41aea9;
-    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-@media only screen and (max-width: 768px){
-    .container-left{
-        border-radius: 10px 10px 0 0;
-    }
-    .text{
-        position: absolute;
-        top: 70%;
-        text-align: center;
-    }
-    .text p, i{
-        font-size: 16px;
-    }
-    .one, .two{
-        max-width:420px;
-    }
+.book-buy-button:hover {
+    background-color: #319d95;
 }
-
-
-
-
+/*zachary atkins end*/
 
 
