@@ -1,8 +1,10 @@
 {% extends '_layout.html' %}
 
+
 {% block title %}Search Results{% endblock %}
 
 {% block body %}
+<link rel="stylesheet" href="/static/search_results_book_page.css">
   <h1 class="search-heading">Search Results for: {{ query }}</h1>
   <form action="{{ url_for('search') }}" class="search-search-bar" method="GET">
     <input type="text" placeholder="Search Textbook..." name="search_query">
