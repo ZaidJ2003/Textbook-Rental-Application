@@ -7,8 +7,7 @@ Technologies Used:
 -PostgreSQL
 -HTML/CSS/JavaScript
 
-## Project Name
-BookBorrow
+Project Name: BookBorrow
 
 ## Setup Instructions
 
