@@ -1,11 +1,24 @@
 # To run, must create virtual env and activate it, then run flask run
 
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
+import os
+from dotenv import load_dotenv
+from src.repositories.models import db, users
+from sqlalchemy import inspect
 
 # Flask Initialization
 app = Flask(__name__)
 
+# App Secret Key
+app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
 app.debug = True
+
+load_dotenv()
+# If you have .env set up
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASS")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}'
+# hardcoded if .env is not set up yet
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:123@localhost:5432/textbook_application"
+db.init_app(app)
 
 #just some ai generated example books
 textbooks = [
@@ -55,6 +68,10 @@ def about():
 
 @app.get('/login')
 def login():
+    #test data
+    # user = users("Zaid", "test", "test@test.com", "temp", "123")
+    # db.session.add(user)
+    # db.session.commit()
     return render_template('login.html')
 
 @app.get('/register')
