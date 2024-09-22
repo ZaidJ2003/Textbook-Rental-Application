@@ -153,14 +153,15 @@
 }
 
 body {
+    font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr;
     grid-auto-rows: 75px auto 50px;
     grid-template-areas: 
-    "hd hd hd hd"
-    "main main main main"
-    "ft ft ft ft";
+    "hd"
+    "main"
+    "ft";
     margin: 0 0 var(--header-height) 0; 
 }
 
