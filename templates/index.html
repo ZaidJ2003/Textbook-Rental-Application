@@ -1,0 +1,40 @@
+{% extends '_layout.html' %}
+x
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/main.css">
+<!-- <div class="container pt-4">
+  <div class="non-footer">
+    <div class="contain-to-grid">
+      <nav class="top-bar" data-topbar>
+        <ul class="title-area">
+          <li class="home"></li>
+          <li class="name"></li>
+        </ul>
+        <section class="top-bar-section"></section>
+      </nav>
+    </div>
+
+    <div class="topbar">
+      <div class="wrapper">
+        <div class="search">
+          <h1>Search for textbooks/course material</h1>
+          <form name="searchform" action="/search.php" method="post" class="form-search">
+            <input id="search_box" name="keywords" placeholder="Enter" class="txt-search big" autocomplete="off" tabindex="1">
+            <input type="submit" class="btn-search big">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<div class="search-container">
+  <form action="{{ url_for('search') }}" class="search-bar" method="GET">
+    <input type="text" placeholder="Search Textbook..." name="search_query">
+    <button type="submit"><img src="/static/images/search.png"></button>
+  </form>
+</div>
+
+{% endblock %}
