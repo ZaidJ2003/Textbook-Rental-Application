@@ -239,6 +239,11 @@ span a:hover{
     color: white;
 }
 
+.close {
+    float: right;
+    width: 30px;
+}
+
 @media only screen and (max-width: 768px){
     .container-left{
         border-radius: 10px 10px 0 0;

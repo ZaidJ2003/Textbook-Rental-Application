@@ -1,11 +1,27 @@
 # To run, must create virtual env and activate it, then run flask run
 
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
+import os
+from dotenv import load_dotenv
+from src.models import db, users
+from sqlalchemy import or_, func
+from flask_bcrypt import Bcrypt
 
 # Flask Initialization
 app = Flask(__name__)
 
+# App Secret Key
+app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
 app.debug = True
+
+load_dotenv()
+# If you have .env set up
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASS")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}'
+# hardcoded if .env is not set up yet
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:123@localhost:5432/textbook_application"
+db.init_app(app)
+
+bcrypt = Bcrypt(app)
 
 #just some ai generated example books
 textbooks = [
@@ -48,18 +64,94 @@ def search():
 
     return render_template('search_results.html', query=query, textbooks=filtered_textbooks)
 
-
 @app.get('/about')
 def about():
     return render_template('about.html')
 
 @app.get('/login')
 def login():
+    if 'user' in session:
+        flash("You are already logged in", category='error')
+        return redirect('/')
     return render_template('login.html')
+
+@app.post('/login')
+def login_user():
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user_username = request.form.get('username')
+    user_password = request.form.get('password')
+
+    if not user_username or not user_password:
+        flash('Please enter a username and password', category='error')
+        return redirect('/login')
+    
+    current_user = users.query.filter(
+    (func.lower(users.username) == user_username.lower()) | 
+    (func.lower(users.email) == user_password.lower())
+    ).first()
+
+    print(current_user)
+
+    if current_user is not None:
+        if bcrypt.check_password_hash(current_user.password, user_password):
+                flash('Successfully logged in, ' + current_user.first_name + '!', category='success')
+                session['user'] = {
+                    'username' : current_user.username,
+                    'user_id' : current_user.user_id,
+                    'email' : current_user.email,
+                    'first_name' : current_user.first_name,
+                    'last_name' : current_user.last_name,
+                    'profile_picture' : current_user.profile_picture
+                }
+                return redirect('/')
+        else:
+            flash('Incorrect username or password', category='error')
+    else:
+        flash('Username does not exist', category='error')
+
+    return redirect('/login')
 
 @app.get('/register')
 def register():
+    if 'user' in session:
+        flash('You are already logged in. Logout to make a new account', category='error')
+        return redirect('/')
     return render_template('register.html')
+
+@app.post('/register')
+def register_user():
+    if 'user' in session:
+        flash('You are already logged in. Logout to make a new account', category='error')
+        return redirect('/')
+    
+    user_first_name = request.form.get('first-name')
+    user_last_name = request.form.get('last-name')
+    user_email = request.form.get('email')
+    user_username = request.form.get('username')
+    user_password = request.form.get('password')
+    profile_picture = 'default-profile-pic.jpg'
+
+    if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
+        flash('Please fill out all of the fields', category='error')
+        return redirect('/register')
+
+    current_user = users.query.filter((func.lower(users.username) == user_username.lower()) | 
+    (func.lower(users.email) == user_email.lower())).first()
+
+    if current_user:
+        if current_user.email.lower() == user_email.lower():
+            flash('email already exists', category='error')
+        elif current_user.username.lower() == user_username.lower():
+            flash('username already exists', category='error')
+        return redirect('/register')
+
+    new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return redirect('/')
 
 @app.get('/book')
 def book():
