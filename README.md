@@ -29,3 +29,4 @@ Run with "flask run --debug"
 Students can use the application to search for desried textbooks, view available listings, and rent/purchase textbook if they decide to. The app will also provide the option to communicate with the owner of the book to faciliate the meeting or sell/return of the book.
 
 ## Team's Progress:
+Zaid: Finished up user management/session related issues in the user management milestone.
