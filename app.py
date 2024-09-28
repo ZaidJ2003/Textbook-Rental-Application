@@ -105,6 +105,14 @@ def login_user():
 
     return redirect('/login')
 
+@app.post('/logout')
+def logout():
+    if 'user' in session:
+        user_repository_singleton.logout_user()
+    else:
+        flash('You are not logged in', category='error')
+    return redirect('/')
+
 @app.get('/register')
 def register():
     if 'user' in session:
