@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from src.models import db, users
 from sqlalchemy import or_, func
 from flask_bcrypt import Bcrypt
+from src.repositories.user_repository import user_repository_singleton
 
 # Flask Initialization
 app = Flask(__name__)
@@ -95,14 +96,7 @@ def login_user():
     if current_user is not None:
         if bcrypt.check_password_hash(current_user.password, user_password):
                 flash('Successfully logged in, ' + current_user.first_name + '!', category='success')
-                session['user'] = {
-                    'username' : current_user.username,
-                    'user_id' : current_user.user_id,
-                    'email' : current_user.email,
-                    'first_name' : current_user.first_name,
-                    'last_name' : current_user.last_name,
-                    'profile_picture' : current_user.profile_picture
-                }
+                user_repository_singleton.login_user(current_user)
                 return redirect('/')
         else:
             flash('Incorrect username or password', category='error')
@@ -148,6 +142,7 @@ def register_user():
     new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
     db.session.add(new_user)
     db.session.commit()
+    flash('Account created successfully', category='success')
 
     return redirect('/')
 
