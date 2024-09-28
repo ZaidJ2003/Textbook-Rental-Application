@@ -92,8 +92,6 @@ def login_user():
     (func.lower(users.email) == user_password.lower())
     ).first()
 
-    print(current_user)
-
     if current_user is not None:
         if bcrypt.check_password_hash(current_user.password, user_password):
                 flash('Successfully logged in, ' + current_user.first_name + '!', category='success')
