@@ -59,6 +59,7 @@ footer {
     padding: 10px;
     border-radius: 5px;
     background-color: #f9f9f9;
+    overflow: auto;
 }
 
 .search-textbook:hover {
@@ -162,10 +163,24 @@ footer {
 }
 
 .cart-headers {
+    display: flex;
     font-size: x-large;
-    gap: 1rem;
+    height: 10%;
+    overflow: auto;
 }
 
 .checkout-button {
     width: 100%;
+}
+
+.cart-headers-left {
+    width: 66%;
+    justify-content: flex-start;
+}
+
+.cart-headers-right {
+    display: flex;
+    justify-content: flex-start;
+    width: 34%;
+    gap: 1rem;
 }

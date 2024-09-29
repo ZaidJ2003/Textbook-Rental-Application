@@ -40,6 +40,7 @@ class UserRepository:
             'last_name' : user.last_name,
             'profile_picture' : user.profile_picture
         }
+        session['cart'] = {}
 
     def logout_user(self):
         del session['user']

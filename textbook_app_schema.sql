@@ -25,5 +25,5 @@ CREATE TABLE cart_items (
     textbook_id INT,
     quantity INT,
     FOREIGN KEY (cart_id) REFERENCES carts(cart_id),
-    FOREIGN KEY (textbook_id) REFERENCES textbooks(id)
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id)
 );

@@ -154,11 +154,18 @@ def register_user():
 
     return redirect('/')
 
-@app.get('/cart')
+@app.get('/cart/<int:cart_id>')
 def get_cart():
+    cart_books = {}
+    # if 'cart' in session:
+    #     for id, value in session['cart'].items():
+    #         textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
+    #         if textbook:
+    #             cart_books[textbook] = value
+    # return render_template('cart.html', cart_textbooks = cart_books)
     return render_template('cart.html', textbooks = textbooks)
 
-@app.post('/cart')
+@app.post('/cart/update/<int:cart_id>')
 def update_cart():
     return render_template('cart.html')
 

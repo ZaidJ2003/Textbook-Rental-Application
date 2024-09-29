@@ -7,18 +7,28 @@
 <div class="container">
     <div class="row">
         <h1 class="text-center mt-4">Cart</h2>
-        {% if textbooks.count != 0 %}
+        {% if cart.count != 0 %}
             <hr>
-            <div class="d-flex cart-headers">
+            <!-- <div class="d-flex cart-headers">
                 <div class="p-2 flex-grow-1">Product</div>
                 <div class="p-2">Quantity</div>
                 <div class="p-2">Unit Price</div>
                 <div class="p-2">Price</div>
+            </div> -->
+            <div class="cart-headers">
+                <div class="cart-headers-left">
+                    <div>Product</div>
+                </div>
+                <div class="cart-headers-right">
+                    <div class="p-2">Quantity</div>
+                    <div class="p-2">Unit Price</div>
+                    <div class="p-2">Price</div>
+                </div>
             </div>
             <hr>
             <section class="cart-items-container">
                 <form action="/update_cart" class="cart-items-container" method="POST">
-                    {% for textbook in textbooks %}
+                    {% for item in cart %}
                         <div class="search-textbook">
                             <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
                             <div class="search-textbook-info">
@@ -29,6 +39,7 @@
                                 <input type="number" name="quantity_{{ textbook.id }}" class="quantity-input form-outline" value="1" min="1">
                                 <p class="unit-price"> {{ textbook.price }} </p>
                                 <p class="total-price"> total </p>
+                                <button type="submit" class="btn btn-danger">Remove</button>
                             </div>
                         </div>
                     {% endfor %}
