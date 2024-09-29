@@ -1,0 +1,43 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Cart</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/cart.css">
+<div class="container">
+    <div class="row">
+        <h1 class="text-center mt-4">Cart</h2>
+        {% if textbooks.count != 0 %}
+            <hr>
+            <div class="d-flex cart-headers">
+                <div class="p-2 flex-grow-1">Product</div>
+                <div class="p-2">Quantity</div>
+                <div class="p-2">Unit Price</div>
+                <div class="p-2">Price</div>
+            </div>
+            <hr>
+            <section class="cart-items-container">
+                <form action="/update_cart" class="cart-items-container" method="POST">
+                    {% for textbook in textbooks %}
+                        <div class="search-textbook">
+                            <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
+                            <div class="search-textbook-info">
+                                <h2 class="search-textbook-title">{{ textbook.title }}</h2>
+                                <p class="search-textbook-description">{{ textbook.description }}</p>
+                            </div>
+                            <div class="search-textbook-right">
+                                <input type="number" name="quantity_{{ textbook.id }}" class="quantity-input form-outline" value="1" min="1">
+                                <p class="unit-price"> {{ textbook.price }} </p>
+                                <p class="total-price"> total </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </form>
+            </section>
+            <button type="submit" class="checkout-button text-center">Checkout</button>
+        {% else %}
+            <h2>Your cart is empty. Add books to checkout</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

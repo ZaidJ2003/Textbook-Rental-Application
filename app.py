@@ -154,6 +154,14 @@ def register_user():
 
     return redirect('/')
 
+@app.get('/cart')
+def get_cart():
+    return render_template('cart.html', textbooks = textbooks)
+
+@app.post('/cart')
+def update_cart():
+    return render_template('cart.html')
+
 @app.get('/book')
 def book():
 
