@@ -3,8 +3,8 @@
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook
-from sqlalchemy import or_, func
+from src.models import db, users, Textbook, Cart, CartItem
+from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from src.repositories.user_repository import user_repository_singleton
@@ -136,7 +136,7 @@ def book():
         return "Textbook not found", 404
 
 
-    return render_template('book.html', title=textbook.title, description=textbook.description, image_url=textbook.image_url, price=textbook.price)
+    return render_template('book.html', textbook = textbook)
 
 @app.get('/about')
 def about():
@@ -228,19 +228,60 @@ def register_user():
     return redirect('/')
 
 @app.get('/cart/<int:cart_id>')
-def get_cart():
-    cart_books = {}
-    # if 'cart' in session:
-    #     for id, value in session['cart'].items():
-    #         textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
-    #         if textbook:
-    #             cart_books[textbook] = value
-    # return render_template('cart.html', cart_textbooks = cart_books)
-    return render_template('cart.html', textbooks = textbooks)
+def get_cart(cart_id):
+    cart_items_dict = {}
+    total = 0
+    if 'cart' in session:
+        # for id, value in session['cart'].items():
+        #     textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
+        #     if textbook:
+        #         cart_books[textbook] = value
+        cart_items = CartItem.query.filter(CartItem.cart_id == cart_id).all()
+        for item in cart_items:
+            textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
+            if textbook:
+                total += (textbook.price*item.quantity)
+                cart_items_dict[textbook.textbook_id] = {
+                    'title' : textbook.title,
+                    'description' : textbook.description,
+                    'price' : textbook.price,
+                    'quantity' : item.quantity,
+                    'image_url': textbook.image_url,
+                    'total': total
+                }
+    return render_template('cart.html', cart = cart_items_dict, total = total)
 
-@app.post('/cart/update/<int:cart_id>')
-def update_cart():
-    return render_template('cart.html')
+@app.post('/cart/<int:cart_id>')
+def add_cart_item(cart_id):
+    textbook_id = request.form.get('textbook_id')
+    if not textbook_id:
+        abort(404)
+    textbook = CartItem.query.filter(
+    and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
+
+    if textbook:
+        textbook.quantity += 1
+    else:
+        new_item = CartItem(cart_id, int(textbook_id), 1)
+        db.session.add(new_item)
+
+    db.session.commit()
+
+    return redirect(f'/cart/{cart_id}')
+
+@app.post('/cart/delete/<int:cart_id>')
+def delete_cart_item(cart_id):
+    textbook_id = request.form.get('textbook_id')
+    if not textbook_id:
+        abort(404)
+    textbook = CartItem.query.filter(
+    and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
+
+    if textbook:
+        db.session.delete(textbook)
+        db.session.commit()
+
+    return redirect(f'/cart/{cart_id}')
 
 if __name__ == '__main__':
     app.run(debug=True)

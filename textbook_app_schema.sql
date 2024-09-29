@@ -8,38 +8,22 @@ CREATE TABLE IF NOT EXISTS users(
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     registration_date TIMESTAMP,
-    profile_picture VARCHAR(255), 
+    profile_picture VARCHAR(255),
     PRIMARY KEY (user_id)
 );
 
-CREATE TABLE IF NOT EXISTS cart(
-    cart_id SERIAL;
-    user_id INTEGER;
-    PRIMARY KEY (cart_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE cart_items (
-    item_id INT PRIMARY KEY AUTO_INCREMENT,
-    cart_id INT,
-    textbook_id INT,
-    quantity INT,
-    FOREIGN KEY (cart_id) REFERENCES carts(cart_id),
-    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id)
-);
-
 CREATE TABLE IF NOT EXISTS textbooks (
-    textbook_id SERIAL PRIMARY KEY, 
+    textbook_id SERIAL PRIMARY KEY,
     owners_user_id INTEGER NOT NULL,
-    title VARCHAR(255) NOT NULL,  
-    description TEXT NOT NULL,  
-    image_url VARCHAR(255), 
-    price NUMERIC(10, 2) NOT NULL, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    image_url VARCHAR(255),
+    price NUMERIC(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO textbooks (owners_user_id, title, description, image_url, price) 
-VALUES 
+INSERT INTO textbooks (owners_user_id, title, description, image_url, price)
+VALUES
 (1, 'Introduction to Python', 'A beginner''s guide to Python programming.', '/static/images/bookborrowlogo.jpg', 29.99),
 (1, 'Advanced Python Programming', 'Deep dive into advanced Python concepts.', '/static/images/bookborrowlogo.jpg', 49.99),
 (2, 'Data Science with Python', 'Learn data science techniques using Python.', '/static/images/bookborrowlogo.jpg', 39.99),
@@ -63,3 +47,19 @@ VALUES
 (1, 'Learning SQL', 'An introduction to SQL and database querying.', '/static/images/bookborrowlogo.jpg', 27.99),
 (2, 'Web Design with HTML, CSS, JavaScript and jQuery Set', 'Comprehensive guide to web design and development.', '/static/images/bookborrowlogo.jpg', 55.99),
 (3, 'React Up & Running', 'Hands-on guide to building modern web applications with React.', '/static/images/bookborrowlogo.jpg', 39.99);
+
+CREATE TABLE IF NOT EXISTS carts(
+    cart_id SERIAL,
+    user_id INTEGER,
+    PRIMARY KEY (cart_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    item_id SERIAL PRIMARY KEY,
+    cart_id INT,
+    textbook_id INT,
+    quantity INT,
+    FOREIGN KEY (cart_id) REFERENCES carts(cart_id),
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id)
+);

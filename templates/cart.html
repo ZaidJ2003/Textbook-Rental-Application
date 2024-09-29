@@ -6,8 +6,7 @@
 <link rel="stylesheet" href="/static/css/cart.css">
 <div class="container">
     <div class="row">
-        <h1 class="text-center mt-4">Cart</h2>
-        {% if cart.count != 0 %}
+        <h1 class="text-center mt-4">Cart</h1>
             <hr>
             <!-- <div class="d-flex cart-headers">
                 <div class="p-2 flex-grow-1">Product</div>
@@ -26,9 +25,10 @@
                 </div>
             </div>
             <hr>
+            {% if cart|length != 0 %}
             <section class="cart-items-container">
-                <form action="/update_cart" class="cart-items-container" method="POST">
-                    {% for item in cart %}
+                <form action="/cart/delete/{{ session['cart']['cart_id'] }}" class="cart-items-container" method="POST">
+                    {% for id, textbook in cart.items() %}
                         <div class="search-textbook">
                             <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
                             <div class="search-textbook-info">
@@ -36,18 +36,24 @@
                                 <p class="search-textbook-description">{{ textbook.description }}</p>
                             </div>
                             <div class="search-textbook-right">
-                                <input type="number" name="quantity_{{ textbook.id }}" class="quantity-input form-outline" value="1" min="1">
+                                <input type="hidden" name="textbook_id" class="quantity-input form-outline" value="{{ id }}" min="1">
+                                <input type="number" name="textbook_quantity" class="quantity-input form-outline" value="{{ textbook.quantity }}" min="1" max="9">
                                 <p class="unit-price"> {{ textbook.price }} </p>
-                                <p class="total-price"> total </p>
+                                <p class="total-price"> {{ textbook.total }} </p>
                                 <button type="submit" class="btn btn-danger">Remove</button>
                             </div>
                         </div>
                     {% endfor %}
                 </form>
             </section>
-            <button type="submit" class="checkout-button text-center">Checkout</button>
+            <section class="checkout">
+                <h1 class="text-center mt-2">Order Summary</h1>
+                <hr>
+                <h2>Total: ${{ total }}</h2>
+                <button type="submit" class="checkout-button">Checkout</button>
+            </section>
         {% else %}
-            <h2>Your cart is empty. Add books to checkout</p>
+            <h2 class="mt-4">Your cart is empty. Add <a href="/search">books</a> to checkout</p>
         {% endif %}
     </div>
 </div>

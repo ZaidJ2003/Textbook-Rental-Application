@@ -184,3 +184,8 @@ footer {
     width: 34%;
     gap: 1rem;
 }
+
+.checkout-button {
+    background-color:#f9f9f9;
+    color: #005A91;
+}

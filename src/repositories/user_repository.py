@@ -1,4 +1,4 @@
-from src.models import db, users
+from src.models import db, users, Textbook, Cart, CartItem
 from flask import abort, flash, session
 
 class UserRepository:
@@ -40,7 +40,18 @@ class UserRepository:
             'last_name' : user.last_name,
             'profile_picture' : user.profile_picture
         }
-        session['cart'] = {}
+
+        if 'cart' not in session:
+            session['cart'] = {}
+
+        cart_id = Cart.query.filter(Cart.user_id == user.user_id).first()
+        if cart_id:
+            session['cart']['cart_id'] = cart_id
+        else:
+            new_cart = Cart(user.user_id)
+            db.session.add(new_cart)
+            db.session.commit()
+            session['cart']['cart_id'] = new_cart.cart_id
 
     def logout_user(self):
         del session['user']

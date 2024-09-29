@@ -34,3 +34,26 @@ class Textbook(db.Model):
         image_url = db.Column(db.String(255))
         price = db.Column(db.Numeric(10, 2), nullable=False)
         created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class Cart(db.Model):
+        __tablename__ = 'carts' 
+
+        cart_id = db.Column(db.Integer, primary_key=True)
+        user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+
+        def __init__(self, user_id):
+                self.user_id = user_id
+
+# Cart items table
+class CartItem(db.Model):
+        __tablename__ = 'cart_items'
+
+        item_id = db.Column(db.Integer, primary_key=True)
+        cart_id = db.Column(db.Integer, db.ForeignKey('carts.cart_id'), nullable=False)
+        textbook_id = db.Column(db.Integer, db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        quantity = db.Column(db.Integer, nullable=False)
+
+        def __init__(self, cart_id:int, textbook_id:int, quantity:int):
+                self.cart_id = cart_id
+                self.textbook_id = textbook_id
+                self.quantity = quantity

@@ -5,15 +5,23 @@
 <link rel="stylesheet" href="/static/css/search_results_book_page.css">
 <div class="book-container">
     <div class="book-image">
-        <img src="{{ image_url }}" alt="{{ title }}">
+        <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}">
     </div>
     <div class="book-details">
-        <h1 class="book-title">{{ title }}</h1>
-        <p class="book-description">{{ description }}</p>
-        <p class="book-price">{{ price }}</p>
+        <h1 class="book-title">{{ textbook.title }}</h1>
+        <p class="book-description">{{ textbook.description }}</p>
+        <p class="book-price">{{ textbook.price }}</p>
 
-        <!-- this is just a placeholder button it will have to be a fourm later on to work with flask-->
-        <button class="book-buy-button">Buy Now</button>
+        {% if 'user' in session %}
+            <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
+                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                <button class="book-buy-button">Add to Cart</button>
+            </form>
+        {% else %}
+            <form action="/login" method="get">
+                <button class="book-buy-button">Add to Cart</button>
+            </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
