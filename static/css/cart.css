@@ -186,6 +186,17 @@ footer {
 }
 
 .checkout-button {
-    background-color:#f9f9f9;
-    color: #005A91;
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #41aea9;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.checkout-button:hover {
+    background-color: #319d95;
 }

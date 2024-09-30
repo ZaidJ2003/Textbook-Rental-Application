@@ -230,7 +230,7 @@ def register_user():
 @app.get('/cart/<int:cart_id>')
 def get_cart(cart_id):
     cart_items_dict = {}
-    total = 0
+    total = 0.00
     if 'cart' in session:
         # for id, value in session['cart'].items():
         #     textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
@@ -240,16 +240,17 @@ def get_cart(cart_id):
         for item in cart_items:
             textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
             if textbook:
-                total += (textbook.price*item.quantity)
+                total += float(textbook.price * item.quantity)
                 cart_items_dict[textbook.textbook_id] = {
                     'title' : textbook.title,
                     'description' : textbook.description,
                     'price' : textbook.price,
                     'quantity' : item.quantity,
                     'image_url': textbook.image_url,
-                    'total': total
                 }
-    return render_template('cart.html', cart = cart_items_dict, total = total)
+    tax = round(total * .0475, 2)
+    final_price = round(tax + total, 2)
+    return render_template('cart.html', cart = cart_items_dict, total = total, tax = tax, final_price = final_price)
 
 @app.post('/cart/<int:cart_id>')
 def add_cart_item(cart_id):
