@@ -286,8 +286,8 @@ def delete_cart_item(cart_id):
         db.session.commit()
 
     return redirect(f'/cart/{cart_id}')
-
-#temporary meetup page (specifically made to implement gmaps)
+  
+  #temporary meetup page (specifically made to implement gmaps)
 @app.post('/meetup')
 def meetup():
     if 'user_id' in session:
@@ -310,7 +310,7 @@ def meetup():
         return redirect('/meetup')
     else:
         return render_template('index.html')
-    
+
 
 if __name__ == '__main__':
     app.run(debug=True)
