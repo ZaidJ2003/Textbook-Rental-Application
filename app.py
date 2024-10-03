@@ -11,11 +11,11 @@ from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
+load_dotenv()
 # Flask Initialization
 app = Flask(__name__)
-
-#temp gmaps placeholder
-#gmaps = googlemaps.Client(key='')
+#gmaps key
+gmaps = googlemaps.Client(key='AIzaSyDUNewuSDlRLem-I3kcBnvU6467VleNicM')
 
 # App Secret Key
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
@@ -23,7 +23,6 @@ app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.debug = True
 
-load_dotenv()
 # If you have .env set up
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASS")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}'
 # hardcoded if .env is not set up yet
@@ -298,6 +297,7 @@ def meetup():
         start_time = request.form['start_time']
         end_time = request.form['end_time']
         user_address = request.form['user_address']
+        
         geocode_result = gmaps.geocode(user_address)
         meeting_address_pre = geocode_result[0]["place_id"]
 
@@ -307,11 +307,10 @@ def meetup():
         if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
             return 'Bad Request', 400
         # More tests???????
-        # waiting for implementation of repo folder. In the meantime this is a placeholder
-
-        # meeting_repo.create_event(host_id, meeting_name, meeting_description, start_time, end_time, meeting_address)
-        return redirect('/events')
+        return redirect('/meetup')
     else:
         return render_template('index.html')
+    
+
 if __name__ == '__main__':
     app.run(debug=True)
