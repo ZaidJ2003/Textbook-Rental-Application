@@ -38,7 +38,8 @@
         
         <nav class="navbar navbar-expand-lg bg-body-tertiary"> 
             <div class="container-fluid">
-                <a class="navbar-brand" href="/"><span style="font-family: cursive">Textbook Rental</span></a>
+                <a class="navbar-brand" href="/"><span style="font-family: Lucida Console">Textbook Rental</span></a>
+                <img src="static\images\booksitelogoedit1 (1).png" alt="..." height="40">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -79,9 +80,28 @@
     </header>
 
     <main>
+        
         {% block body %}
         <!-- The child template will inject content here -->
+         
         {% endblock %}
+        <div class="wrapper">
+            <div class="fullbox index">
+                <div style="background: ghostwhite; 
+                font-size: 20px; 
+                padding: 10px; 
+                border: 1px solid lightgray; 
+                margin: 10px;">
+                    <h2 style="margin-top: 0px;">What is our website?</h2>
+                    
+                    <p>This site is meant to be allow students to facilitate trade of textbooks or other course materials among students without the overprices fees you would see while buying retail textbooks. You can set textbooks you want to the cart and directly message the current owner while setting up specific meetings to exchange whenever needed.</p>
+                    
+                    <h2> How do I rent Textbooks?</h2>
+
+                    <p> First you need to make an account and then you can browse using the search bar to add to your cart. You can also check the latest posted listing by clicking the search bar without typing anything in!</p>
+                  </div>
+            </div>
+        </div>
     </main>
     <footer class="footer">
         &copy; 2024 TextRent. All rights reserved.
