@@ -251,7 +251,7 @@ def get_cart(cart_id):
                     'price' : textbook.price,
                     'quantity' : item.quantity,
                     'image_url': textbook.image_url,
-                    'total' : textbook.total
+                    'total' : (item.quantity * textbook.price)
                 }
     tax = round(total * .0475, 2)
     final_price = round(tax + total, 2)
