@@ -17,6 +17,9 @@
                 <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
                 <button class="book-buy-button">Add to Cart</button>
             </form>
+            <form action="/meetup" method="get">
+                <button class="book-buy-button">Schedule meetup</button>
+            </form>
         {% else %}
             <form action="/login" method="get">
                 <button class="book-buy-button">Add to Cart</button>

@@ -8,9 +8,14 @@ from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from src.repositories.user_repository import user_repository_singleton
+import googlemaps
 
+#bcrypt, os, dotenv might be helpful (delete comment if not needed)
+load_dotenv()
 # Flask Initialization
 app = Flask(__name__)
+#gmaps key
+gmaps = googlemaps.Client(key='AIzaSyDUNewuSDlRLem-I3kcBnvU6467VleNicM')
 
 # App Secret Key
 app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
@@ -18,7 +23,6 @@ app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY', 'default')
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.debug = True
 
-load_dotenv()
 # If you have .env set up
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASS")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}'
 # hardcoded if .env is not set up yet
@@ -284,6 +288,31 @@ def delete_cart_item(cart_id):
         db.session.commit()
 
     return redirect(f'/cart/{cart_id}')
+  
+  #temporary meetup page (specifically made to implement gmaps)
+@app.post('/meetup')
+def meetup():
+    if 'user_id' in session:
+        host_id = session['user_id']
+        meeting_name = request.form['meeting_name']
+        meeting_description = request.form['meeting_description']
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+        user_address = request.form['user_address']
+        
+        geocode_result = gmaps.geocode(user_address)
+        meeting_address_pre = geocode_result[0]["place_id"]
+
+        rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
+        meeting_address = rev_geocode_result[0]["formatted_address"]
+        
+        if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
+            return 'Bad Request', 400
+        # More tests???????
+        return redirect('/meetup')
+    else:
+        return render_template('index.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
