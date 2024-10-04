@@ -223,11 +223,14 @@ def register_user():
         elif current_user.username.lower() == user_username.lower():
             flash('username already exists', category='error')
         return redirect('/register')
-
-    new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
-    db.session.add(new_user)
-    db.session.commit()
-    flash('Account created successfully', category='success')
+    
+    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_password):
+        new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Account created successfully', category='success')
+    else:
+        return redirect('/register')
 
     return redirect('/')
 
