@@ -10,6 +10,15 @@
     <title>Textbook Rental || {% block title %}{% endblock %}</title>
 </head>
 
+
+<style>
+    .flash {
+        position: fixed;
+        width: 100%;
+        z-index: 10000;
+    }
+</style>
+
 <body>
     <header>
         <section class="flash">
@@ -83,9 +92,9 @@
         
         {% block body %}
         <!-- The child template will inject content here -->
-         
+
         {% endblock %}
-        <div class="wrapper">
+        <!-- <div class="wrapper">
             <div class="fullbox index">
                 <div style="background: ghostwhite; 
                 font-size: 20px; 
@@ -101,7 +110,7 @@
                     <p> First you need to make an account and then you can browse using the search bar to add to your cart. You can also check the latest posted listing by clicking the search bar without typing anything in!</p>
                 </div>
             </div>
-        </div>
+        </div> -->
     </main>
     <footer class="footer">
         &copy; 2024 TextRent. All rights reserved.
