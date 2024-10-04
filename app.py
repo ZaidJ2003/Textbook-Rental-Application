@@ -223,18 +223,21 @@ def register_user():
         elif current_user.username.lower() == user_username.lower():
             flash('username already exists', category='error')
         return redirect('/register')
-
-    new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
-    db.session.add(new_user)
-    db.session.commit()
-    flash('Account created successfully', category='success')
+    
+    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_password):
+        new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Account created successfully', category='success')
+    else:
+        return redirect('/register')
 
     return redirect('/')
 
 @app.get('/cart/<int:cart_id>')
 def get_cart(cart_id):
     cart_items_dict = {}
-    total = 0
+    total = 0.00
     if 'cart' in session:
         # for id, value in session['cart'].items():
         #     textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
@@ -244,16 +247,18 @@ def get_cart(cart_id):
         for item in cart_items:
             textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
             if textbook:
-                total += (textbook.price*item.quantity)
+                total += float(textbook.price * item.quantity)
                 cart_items_dict[textbook.textbook_id] = {
                     'title' : textbook.title,
                     'description' : textbook.description,
                     'price' : textbook.price,
                     'quantity' : item.quantity,
                     'image_url': textbook.image_url,
-                    'total': total
+                    'total' : (item.quantity * textbook.price)
                 }
-    return render_template('cart.html', cart = cart_items_dict, total = total)
+    tax = round(total * .0475, 2)
+    final_price = round(tax + total, 2)
+    return render_template('cart.html', cart = cart_items_dict, total = total, tax = tax, final_price = final_price)
 
 @app.post('/cart/<int:cart_id>')
 def add_cart_item(cart_id):

@@ -44,9 +44,9 @@ class UserRepository:
         if 'cart' not in session:
             session['cart'] = {}
 
-        cart_id = Cart.query.filter(Cart.user_id == user.user_id).first()
-        if cart_id:
-            session['cart']['cart_id'] = cart_id
+        cart = Cart.query.filter(Cart.user_id == user.user_id).first()
+        if cart:
+            session['cart']['cart_id'] = cart.cart_id
         else:
             new_cart = Cart(user.user_id)
             db.session.add(new_cart)
