@@ -228,6 +228,7 @@ def register_user():
         new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
         db.session.add(new_user)
         db.session.commit()
+        user_repository_singleton.login_user(new_user)
         flash('Account created successfully', category='success')
     else:
         return redirect('/register')
