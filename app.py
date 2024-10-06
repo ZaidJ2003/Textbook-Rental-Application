@@ -265,9 +265,9 @@ def get_cart(cart_id):
                     'image_url': textbook.image_url,
                     'total' : (item.quantity * textbook.price)
                 }
-    tax = round(total * .0475,2)
-    final_price = round(tax + total,2)
-    return render_template('cart.html', cart = cart_items_dict, total = total, tax = tax, final_price = final_price)
+    # tax = round(total * .0475,2)
+    final_price = round(total, 2)
+    return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price)
 
 @app.post('/cart/<int:cart_id>')
 def add_cart_item(cart_id):
