@@ -242,7 +242,7 @@ def register_user():
 
     return redirect('/')
 
-@app.get('/cart/<int:cart_id>')
+@app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):
     if 'user' not in session:
         flash('Must be logged in to access cart and checkout')
@@ -271,7 +271,7 @@ def get_cart(cart_id):
     final_price = round(total, 2)
     return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price)
 
-@app.post('/cart/<int:cart_id>')
+@app.post('/cart/<uuid:cart_id>')
 def add_cart_item(cart_id):
     if 'user' not in session:
         flash('Must be logged in to access cart and checkout')
@@ -285,7 +285,7 @@ def add_cart_item(cart_id):
     if textbook:
         textbook.quantity += 1
     else:
-        new_item = CartItem(cart_id, int(textbook_id), 1)
+        new_item = CartItem(cart_id, textbook_id, 1)
         db.session.add(new_item)
 
     db.session.commit()
@@ -295,7 +295,7 @@ def add_cart_item(cart_id):
     return redirect(f'/cart/{cart_id}')
 
 
-@app.post('/cart/update/<int:cart_id>')
+@app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
         flash('Must be logged in to access cart and checkout')
@@ -316,7 +316,7 @@ def update_item_quantity(cart_id):
     
     return redirect(f'/cart/{cart_id}')
 
-@app.post('/cart/delete/<int:cart_id>')
+@app.post('/cart/delete/<uuid:cart_id>')
 def delete_cart_item(cart_id):
     if 'user' not in session:
         flash('Must be logged in to access cart and checkout')
