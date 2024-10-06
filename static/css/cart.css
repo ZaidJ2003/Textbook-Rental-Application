@@ -159,7 +159,9 @@ footer {
 }
 
 .quantity-input {
-    max-width: 75px;
+    width: 80px;
+    margin-top: 5px;
+    font-size: large;
 }
 
 .cart-headers {
@@ -200,3 +202,12 @@ footer {
 .checkout-button:hover {
     background-color: #319d95;
 }
+
+.cart-form {
+    align-content: center;
+}
+
+.hide {
+    display: none;
+}
+

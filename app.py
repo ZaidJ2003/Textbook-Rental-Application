@@ -281,6 +281,25 @@ def add_cart_item(cart_id):
 
     return redirect(f'/cart/{cart_id}')
 
+
+@app.post('/cart/update/<int:cart_id>')
+def update_item_quantity(cart_id):
+    textbook_id = request.form.get('textbook_id')
+    updated_quantity = request.form.get('textbook_quantity')
+    if not textbook_id:
+        abort(404)
+    textbook = CartItem.query.filter(
+    and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
+
+    if textbook:
+        textbook.quantity = updated_quantity
+
+    db.session.commit()
+    
+    user_repository_singleton.update_cart_quantity()
+    
+    return redirect(f'/cart/{cart_id}')
+
 @app.post('/cart/delete/<int:cart_id>')
 def delete_cart_item(cart_id):
     textbook_id = request.form.get('textbook_id')
