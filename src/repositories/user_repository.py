@@ -45,13 +45,20 @@ class UserRepository:
             session['cart'] = {}
 
         cart = Cart.query.filter(Cart.user_id == user.user_id).first()
+        curr_cart_item = None
         if cart:
             session['cart']['cart_id'] = cart.cart_id
+            curr_cart_item = CartItem.query.filter(CartItem.cart_id == cart.cart_id).first()
+            if curr_cart_item:
+                session['cart']['quantity'] = curr_cart_item.quantity
+            else:
+                session['cart']['quantity'] = 0
         else:
             new_cart = Cart(user.user_id)
             db.session.add(new_cart)
             db.session.commit()
             session['cart']['cart_id'] = new_cart.cart_id
+            session['cart']['quantity'] = 0
 
     def logout_user(self):
         del session['user']
@@ -82,6 +89,9 @@ class UserRepository:
     
     def get_user_profile_picture(self):
         return session['user']['profile_picture']
+    
+    def update_cart_quantity(self, new_quantity):
+        session['cart']['quantity'] = new_quantity
 
 # Singleton to be used in other modules
 user_repository_singleton = UserRepository()

@@ -50,7 +50,7 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS carts(
     cart_id SERIAL,
-    user_id INTEGER,
+    user_id INTEGER UNIQUE,
     PRIMARY KEY (cart_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

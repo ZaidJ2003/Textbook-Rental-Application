@@ -276,6 +276,9 @@ def add_cart_item(cart_id):
 
     db.session.commit()
 
+    session['cart']['quantity'] += 1
+    # user_repository_singleton.update_cart_quantity(session['cart']['quantity'] + 1)
+
     return redirect(f'/cart/{cart_id}')
 
 @app.post('/cart/delete/<int:cart_id>')
@@ -290,9 +293,13 @@ def delete_cart_item(cart_id):
         db.session.delete(textbook)
         db.session.commit()
 
+    session['cart']['quantity'] -= textbook.quantity
+    
+    # user_repository_singleton.update_cart_quantity(session['cart']['quantity'] - textbook.quantity)
+
     return redirect(f'/cart/{cart_id}')
-  
-  #temporary meetup page (specifically made to implement gmaps)
+
+#temporary meetup page (specifically made to implement gmaps)
 @app.post('/meetup')
 def meetup():
     if 'user_id' in session:
