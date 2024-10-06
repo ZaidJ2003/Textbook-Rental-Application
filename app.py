@@ -141,7 +141,6 @@ def search():
 
 @app.get('/book')
 def book():
-
     textbook_id = request.args.get('textbook_id')
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
@@ -245,6 +244,9 @@ def register_user():
 
 @app.get('/cart/<int:cart_id>')
 def get_cart(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     cart_items_dict = {}
     total = 0.00
     if 'cart' in session:
@@ -271,6 +273,9 @@ def get_cart(cart_id):
 
 @app.post('/cart/<int:cart_id>')
 def add_cart_item(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
         abort(404)
@@ -292,6 +297,9 @@ def add_cart_item(cart_id):
 
 @app.post('/cart/update/<int:cart_id>')
 def update_item_quantity(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     updated_quantity = request.form.get('textbook_quantity')
     if not textbook_id:
@@ -310,6 +318,9 @@ def update_item_quantity(cart_id):
 
 @app.post('/cart/delete/<int:cart_id>')
 def delete_cart_item(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
         abort(404)
@@ -348,10 +359,11 @@ def meetup():
     else:
         return render_template('index.html')
 
-# @app.get('/checkout')
-# def get_checkout():
-#     return render_template('checkout.html')
-
+# To test checkout, reference STRIPE API TEST documentation or enter 
+# '4242 4242 4242 4242' as credit card 
+# Use a valid future date, such as 12/34
+# Use any three-digit CVC (four digits for American Express cards)
+# Use any value you like for other form fields
 @app.post('/create-checkout-session')
 def checkout():
     cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
