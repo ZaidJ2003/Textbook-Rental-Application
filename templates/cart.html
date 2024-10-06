@@ -21,7 +21,6 @@
         <hr>
         {% if cart|length != 0 %}
         <section class="cart-items-container">
-            <form action="/cart/delete/{{ session['cart']['cart_id'] }}" class="cart-items-container" method="POST">
                 {% for id, textbook in cart.items() %}
                     <div class="search-textbook">
                         <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
@@ -30,11 +29,21 @@
                             <p class="search-textbook-description">{{ textbook.description }}</p>
                         </div>
                         <div class="search-textbook-right">
-                            <input type="hidden" name="textbook_id" class="quantity-input form-outline" value="{{ id }}" min="1">
-                            <input type="number" name="textbook_quantity" class="quantity-input form-outline" value="{{ textbook.quantity }}" min="1" max="9">
+                            <form action="/cart/update/{{ session['cart']['cart_id'] }}" class="cart-form" method="POST">
+                                <input type="hidden" name="textbook_id" id="textbook_id" value="{{ id }}" min="1">
+                                <select name="textbook_quantity" id="textbook_quantity" class="quantity-input form-outline form-select form-select-sm" onchange="this.form.submit()">
+                                    {% for i in range(1, 10) %}
+                                        <option value="{{ i }}" {% if i == textbook.quantity %}selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                            <!-- <input type="number" name="textbook_quantity" class="quantity-input form-outline" value="{{ textbook.quantity }}" min="1" max="9"> -->
                             <p class="unit-price"> {{ textbook.price }} </p>
                             <p class="total-price"> {{ textbook.total }} </p>
-                            <button type="submit" class="btn btn-danger">Remove</button>
+                            <form action="/cart/delete/{{ session['cart']['cart_id'] }}" class="cart-form" method="POST">
+                                <input type="hidden" name="textbook_id" id="textbook_id" class="quantity-input form-outline" value="{{ id }}" min="1">
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
                         </div>
                     </div>
                 {% endfor %}
@@ -44,11 +53,13 @@
         <section class="checkout">
             <h1 class="text-center mt-2">Order Summary</h1>
             <hr>
-            <h3>Orignial Price: ${{ total }}</h2>
-            <h3>Sales Tax: ${{ tax }}</h2>
+            <h3>Orignial Price: ${{ total }}</h3>
+            <h3>Number of items: {{ session['cart']['quantity'] }}</h3>
             <hr>
             <h2>Total: ${{ final_price }}</h2>
-            <button type="submit" class="checkout-button">Checkout</button>
+            <form action="/create-checkout-session" method="post">
+                <button type="submit" class="checkout-button mb-4 mt-4">Checkout</button>
+            </form>
         </section>
         {% else %}
             <h2 class="mt-4">Your cart is empty. Add <a href="/search">books</a> to checkout</p>

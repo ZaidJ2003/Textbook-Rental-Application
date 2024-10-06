@@ -31,6 +31,14 @@ class UserRepository:
             db.session.delete(user)
             db.session.commit()
 
+    def get_cart_num_items(self):
+        curr_cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+        total_items = 0
+        if curr_cart_items is not None:
+            for item in curr_cart_items:
+                total_items += item.quantity
+        return total_items
+
     def login_user(self, user):
         session['user'] = {
             'username' : user.username,
@@ -47,14 +55,18 @@ class UserRepository:
         cart = Cart.query.filter(Cart.user_id == user.user_id).first()
         if cart:
             session['cart']['cart_id'] = cart.cart_id
+            total_items = self.get_cart_num_items()
+            session['cart']['quantity'] = total_items
         else:
             new_cart = Cart(user.user_id)
             db.session.add(new_cart)
             db.session.commit()
             session['cart']['cart_id'] = new_cart.cart_id
+            session['cart']['quantity'] = 0
 
     def logout_user(self):
         del session['user']
+        del session['cart']
 
     def is_logged_in(self):
         return 'user' in session
@@ -82,6 +94,19 @@ class UserRepository:
     
     def get_user_profile_picture(self):
         return session['user']['profile_picture']
+    
+    def update_cart_quantity(self):
+        if 'cart' in session:
+            total_items = self.get_cart_num_items()
+            session['cart']['quantity'] = total_items
+            session.modified = True
+    
+    def clear_cart(self):
+        if 'cart' in session and 'cart_id' in session['cart']:
+            CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).delete()
+            db.session.commit()
+            session['cart']['quantity'] = 0
+            session.modified = True
 
 # Singleton to be used in other modules
 user_repository_singleton = UserRepository()
