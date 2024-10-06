@@ -221,12 +221,15 @@ def search():
     
 
     #Searchs textbooks in the texbooks table and filtered_textbooks stores textbooks that match the query.
-    filtered_textbooks = db.session.query(Textbook).filter(
-        or_(
-            Textbook.title.ilike(f'%{query}%'),
-            Textbook.description.ilike(f'%{query}%')
-        )
-    ).all()
+    if query:
+        filtered_textbooks = db.session.query(Textbook).filter(
+            or_(
+                Textbook.title.ilike(f'%{query}%'),
+                Textbook.description.ilike(f'%{query}%')
+            )
+        ).all()
+    else:
+        filtered_textbooks = Textbook.query.order_by(Textbook.created_at.desc()).all()
 
     return render_template('search_results.html', query=query, textbooks=filtered_textbooks)
 
