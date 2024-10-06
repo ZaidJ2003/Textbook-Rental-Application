@@ -45,12 +45,14 @@ class UserRepository:
             session['cart'] = {}
 
         cart = Cart.query.filter(Cart.user_id == user.user_id).first()
-        curr_cart_item = None
         if cart:
             session['cart']['cart_id'] = cart.cart_id
-            curr_cart_item = CartItem.query.filter(CartItem.cart_id == cart.cart_id).first()
-            if curr_cart_item:
-                session['cart']['quantity'] = curr_cart_item.quantity
+            curr_cart_items = CartItem.query.filter(CartItem.cart_id == cart.cart_id).all()
+            if curr_cart_items:
+                total_items = 0
+                for item in curr_cart_items:
+                    total_items += item.quantity
+                session['cart']['quantity'] = total_items
             else:
                 session['cart']['quantity'] = 0
         else:
@@ -62,6 +64,7 @@ class UserRepository:
 
     def logout_user(self):
         del session['user']
+        del session['cart']
 
     def is_logged_in(self):
         return 'user' in session
@@ -90,8 +93,15 @@ class UserRepository:
     def get_user_profile_picture(self):
         return session['user']['profile_picture']
     
-    def update_cart_quantity(self, new_quantity):
-        session['cart']['quantity'] = new_quantity
+    def update_cart_quantity(self):
+        if 'cart' in session:
+            curr_cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+            if curr_cart_items is not None:
+                total_items = 0
+                for item in curr_cart_items:
+                    total_items += item.quantity
+                session['cart']['quantity'] = total_items
+                session.modified = True
 
 # Singleton to be used in other modules
 user_repository_singleton = UserRepository()

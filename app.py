@@ -276,8 +276,7 @@ def add_cart_item(cart_id):
 
     db.session.commit()
 
-    session['cart']['quantity'] += 1
-    # user_repository_singleton.update_cart_quantity(session['cart']['quantity'] + 1)
+    user_repository_singleton.update_cart_quantity()
 
     return redirect(f'/cart/{cart_id}')
 
@@ -293,9 +292,7 @@ def delete_cart_item(cart_id):
         db.session.delete(textbook)
         db.session.commit()
 
-    session['cart']['quantity'] -= textbook.quantity
-    
-    # user_repository_singleton.update_cart_quantity(session['cart']['quantity'] - textbook.quantity)
+    user_repository_singleton.update_cart_quantity()
 
     return redirect(f'/cart/{cart_id}')
 
