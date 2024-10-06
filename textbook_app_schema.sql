@@ -1,0 +1,65 @@
+CREATE DATABASE textbook_application;
+
+CREATE TABLE IF NOT EXISTS users(
+    user_id SERIAL, --Serial auto increments id
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    registration_date TIMESTAMP,
+    profile_picture VARCHAR(255),
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS textbooks (
+    textbook_id SERIAL PRIMARY KEY,
+    owners_user_id INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    image_url VARCHAR(255),
+    price NUMERIC(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO textbooks (owners_user_id, title, description, image_url, price)
+VALUES
+(1, 'Introduction to Python', 'A beginner''s guide to Python programming.', '/static/images/bookborrowlogo.jpg', 29.99),
+(1, 'Advanced Python Programming', 'Deep dive into advanced Python concepts.', '/static/images/bookborrowlogo.jpg', 49.99),
+(2, 'Data Science with Python', 'Learn data science techniques using Python.', '/static/images/bookborrowlogo.jpg', 39.99),
+(2, 'JavaScript: The Good Parts', 'A concise guide to the best features of JavaScript.', '/static/images/bookborrowlogo.jpg', 34.99),
+(3, 'JavaScript: The Definitive Guide', 'An in-depth guide to JavaScript programming.', '/static/images/bookborrowlogo.jpg', 44.99),
+(3, 'The Pragmatic Programmer', 'Tips and techniques for modern software development.', '/static/images/bookborrowlogo.jpg', 42.99),
+(1, 'Clean Code', 'A handbook of agile software craftsmanship.', '/static/images/bookborrowlogo.jpg', 37.99),
+(2, 'Design Patterns: Elements of Reusable Object-Oriented Software', 'Classic design patterns for object-oriented programming.', '/static/images/bookborrowlogo.jpg', 49.99),
+(3, 'Introduction to Machine Learning', 'Basics of machine learning and practical applications.', '/static/images/bookborrowlogo.jpg', 45.99),
+(1, 'Artificial Intelligence: A Modern Approach', 'Comprehensive overview of AI principles and techniques.', '/static/images/bookborrowlogo.jpg', 59.99),
+(2, 'Algorithms Unlocked', 'A gentle introduction to algorithms and data structures.', '/static/images/bookborrowlogo.jpg', 31.99),
+(1, 'The Art of Computer Programming', 'Foundational text on algorithms and programming techniques.', '/static/images/bookborrowlogo.jpg', 69.99),
+(3, 'Computer Systems: A Programmer''s Perspective', 'Insight into the underlying workings of computer systems.', '/static/images/bookborrowlogo.jpg', 52.99),
+(2, 'Operating System Concepts', 'Essential concepts of modern operating systems.', '/static/images/bookborrowlogo.jpg', 46.99),
+(1, 'Database System Concepts', 'Comprehensive guide to database systems and their use.', '/static/images/bookborrowlogo.jpg', 48.99),
+(2, 'Computer Networking: A Top-Down Approach', 'Introduction to networking concepts from a top-down perspective.', '/static/images/bookborrowlogo.jpg', 41.99),
+(3, 'Introduction to the Theory of Computation', 'Foundational concepts in computational theory.', '/static/images/bookborrowlogo.jpg', 39.99),
+(1, 'Elements of Programming Interviews', 'Solutions to challenging programming interview questions.', '/static/images/bookborrowlogo.jpg', 36.99),
+(2, 'Eloquent JavaScript', 'A modern introduction to JavaScript programming.', '/static/images/bookborrowlogo.jpg', 29.99),
+(3, 'Python for Data Analysis', 'Using Python for analyzing and visualizing data.', '/static/images/bookborrowlogo.jpg', 32.99),
+(1, 'Learning SQL', 'An introduction to SQL and database querying.', '/static/images/bookborrowlogo.jpg', 27.99),
+(2, 'Web Design with HTML, CSS, JavaScript and jQuery Set', 'Comprehensive guide to web design and development.', '/static/images/bookborrowlogo.jpg', 55.99),
+(3, 'React Up & Running', 'Hands-on guide to building modern web applications with React.', '/static/images/bookborrowlogo.jpg', 39.99);
+
+CREATE TABLE IF NOT EXISTS carts(
+    cart_id SERIAL,
+    user_id INTEGER UNIQUE,
+    PRIMARY KEY (cart_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    item_id SERIAL PRIMARY KEY,
+    cart_id INT,
+    textbook_id INT,
+    quantity INT,
+    FOREIGN KEY (cart_id) REFERENCES carts(cart_id),
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id)
+);

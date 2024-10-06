@@ -1,0 +1,12 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Checkout</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/checkout.css">
+
+<h3>Test Product</h3>
+<form action="/create-checkout-session" method="post">
+    <button type="submit" id="checkout-btn tbn">Checkout</button>
+</form>
+{% endblock %}
