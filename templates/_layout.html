@@ -10,6 +10,15 @@
     <title>Textbook Rental || {% block title %}{% endblock %}</title>
 </head>
 
+
+<style>
+    .flash {
+        position: fixed;
+        width: 100%;
+        z-index: 10000;
+    }
+</style>
+
 <body>
     <header>
         <section class="flash">
@@ -66,6 +75,9 @@
                                     <button type="submit" class="nav-link">Logout</button>
                                 </form>
                             </li>
+                            <li class="nav-item"></li>
+                                <a class="nav-link" href="/cart/{{ session['cart']['cart_id'] }}">Cart | {{ session['cart']['quantity'] }} Items <i class="fa-solid fa-cart-shopping"></i></a>
+                            </li>
                         </ul>
                     {% else %}
                         <ul class="navbar-nav ms-auto">
@@ -86,7 +98,6 @@
         
         {% block body %}
         <!-- The child template will inject content here -->
-         
         {% endblock %}
         <!--<div class="wrapper">
             <div class="fullbox index">

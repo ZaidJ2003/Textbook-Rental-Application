@@ -53,7 +53,7 @@ class CartItem(db.Model):
         textbook_id = db.Column(db.Integer, db.ForeignKey('textbooks.textbook_id'), nullable=False)
         quantity = db.Column(db.Integer, nullable=False)
 
-        def __init__(self, cart_id:int, textbook_id:int, quantity:int):
+        def __init__(self, cart_id, textbook_id, quantity):
                 self.cart_id = cart_id
                 self.textbook_id = textbook_id
                 self.quantity = quantity

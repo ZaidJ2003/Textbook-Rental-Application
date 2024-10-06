@@ -9,6 +9,7 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from src.repositories.user_repository import user_repository_singleton
 import googlemaps
+import stripe
 
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
@@ -29,6 +30,7 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:123@localhost:5432/textbook_application"
 db.init_app(app)
 
+# Hashing algo
 bcrypt = Bcrypt(app)
 
 #-------------------------Sets the allowed extensions for image uploads-------------------------
@@ -38,8 +40,14 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 #-------------------------Sets the allowed extensions for image uploads-------------------------
 
+#global test api key for Stripe
+stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
+
 @app.get('/')
 def home():
+    if request.args.get('success') == "true":
+        user_repository_singleton.clear_cart()
+        flash("Transaction successful!", category="success")
     return render_template('index.html')
 
 @app.get('/addDeleteTextbook')
@@ -73,14 +81,8 @@ def del_textbook():
 
     if os.path.exists(image_path):             #removes the image
         os.remove(image_path)
-
-    filtered_textbooks = db.session.query(Textbook).filter(                #creates a list of textbooks that the user uploaded and stores it in filtered_textbooks
-        or_(
-            Textbook.owners_user_id == session['user']['user_id']
-        )
-    ).all()
-
-    return render_template('addDeleteTextbook.html', textbooks=filtered_textbooks)
+    flash("Textbook deleted successfully", category='success')   
+    return redirect(url_for('addDeleteTextbook'))
 
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
@@ -235,7 +237,6 @@ def search():
 
 @app.get('/book')
 def book():
-
     textbook_id = request.args.get('textbook_id')
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
@@ -330,14 +331,18 @@ def register_user():
         new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
         db.session.add(new_user)
         db.session.commit()
+        user_repository_singleton.login_user(new_user)
         flash('Account created successfully', category='success')
     else:
         return redirect('/register')
 
     return redirect('/')
 
-@app.get('/cart/<int:cart_id>')
+@app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     cart_items_dict = {}
     total = 0.00
     if 'cart' in session:
@@ -358,12 +363,15 @@ def get_cart(cart_id):
                     'image_url': textbook.image_url,
                     'total' : (item.quantity * textbook.price)
                 }
-    tax = round(total * .0475, 2)
-    final_price = round(tax + total, 2)
-    return render_template('cart.html', cart = cart_items_dict, total = total, tax = tax, final_price = final_price)
+    # tax = round(total * .0475,2)
+    final_price = round(total, 2)
+    return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price)
 
-@app.post('/cart/<int:cart_id>')
+@app.post('/cart/<uuid:cart_id>')
 def add_cart_item(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
         abort(404)
@@ -373,15 +381,19 @@ def add_cart_item(cart_id):
     if textbook:
         textbook.quantity += 1
     else:
-        new_item = CartItem(cart_id, int(textbook_id), 1)
+        new_item = CartItem(cart_id, textbook_id, 1)
         db.session.add(new_item)
 
     db.session.commit()
+    user_repository_singleton.update_cart_quantity()
 
     return redirect(f'/cart/{cart_id}')
 
-@app.post('/cart/delete/<int:cart_id>')
+@app.post('/cart/delete/<uuid:cart_id>')
 def delete_cart_item(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
         abort(404)
@@ -392,9 +404,11 @@ def delete_cart_item(cart_id):
         db.session.delete(textbook)
         db.session.commit()
 
+    user_repository_singleton.update_cart_quantity()
+
     return redirect(f'/cart/{cart_id}')
-  
-  #temporary meetup page (specifically made to implement gmaps)
+
+#temporary meetup page (specifically made to implement gmaps)
 @app.post('/meetup')
 def meetup():
     if 'user_id' in session:
@@ -418,6 +432,66 @@ def meetup():
     else:
         return render_template('index.html')
 
+@app.post('/cart/update/<uuid:cart_id>')
+def update_item_quantity(cart_id):
+    if 'user' not in session:
+        flash('Must be logged in to access cart and checkout')
+        return redirect('/login')
+    textbook_id = request.form.get('textbook_id')
+    updated_quantity = request.form.get('textbook_quantity')
+    if not textbook_id:
+        abort(404)
+    textbook = CartItem.query.filter(
+    and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
+
+    if textbook:
+        textbook.quantity = updated_quantity
+
+    db.session.commit()
+    
+    user_repository_singleton.update_cart_quantity()
+    
+    return redirect(f'/cart/{cart_id}')
+
+# To test checkout, reference STRIPE API TEST documentation or enter 
+# '4242 4242 4242 4242' as credit card 
+# Use a valid future date, such as 12/34
+# Use any three-digit CVC (four digits for American Express cards)
+# Use any value you like for other form fields
+@app.post('/create-checkout-session')
+def checkout():
+    cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+    if cart_items is None:
+        abort(404)
+    line_items = []
+    for item in cart_items:
+        textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
+        if textbook:
+            line_items.append({
+                'price_data': {
+                    'currency' : 'usd',
+                    'product_data' : {
+                        'name' : textbook.title,
+                        'description' : textbook.description
+                    },
+                    'unit_amount' : int((textbook.price * 100)),
+                },
+                'quantity': item.quantity,
+            })
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items = line_items,
+            mode = "payment",
+            success_url = url_for('home', _external=True, success="true"),
+            cancel_url = url_for('get_cart', cart_id = session['cart']['cart_id'], _external=True)
+        )
+        if not checkout_session.url:
+            abort(404)
+        return redirect(checkout_session.url)
+    except Exception as e:
+        flash('Error. Transaction failed', category="error")
+        return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True)
