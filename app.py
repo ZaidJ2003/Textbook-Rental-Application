@@ -340,6 +340,10 @@ def meetup():
     else:
         return render_template('index.html')
 
+@app.get('/checkout')
+def get_checkout():
+    return render_template('checkout.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
