@@ -70,7 +70,13 @@ def del_textbook():
         flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
-    textbook_id = request.args.get('textbook_id')              #gets textbook_id and finds the textbook that matches that id in the database
+    textbook_id = request.args.get('textbook_id')    
+
+    cart_items_to_delete = db.session.query(CartItem).filter(CartItem.textbook_id == textbook_id).all()
+    for item in cart_items_to_delete:
+        db.session.delete(item)
+    
+          #gets textbook_id and finds the textbook that matches that id in the database
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
