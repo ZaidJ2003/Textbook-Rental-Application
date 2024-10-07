@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 import stripe
-
+from flask import g
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
 # Flask Initialization
@@ -150,6 +150,24 @@ def profile():
 
     return render_template('profile.html', image_url=image_url)
 
+#app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
+
+@app.before_request
+def before_request():
+    if 'user' in session:
+        current_user = db.session.query(users).filter(                
+                or_(
+                    users.user_id == session['user']['user_id']
+                )
+            ).first()
+        if current_user:
+            g.profile_pic_url = current_user.profile_picture
+        else:
+            g.profile_pic_url = "/static/images/defaultPFP.png"
+    else:
+        g.profile_pic_url = "/static/images/defaultPFP.png"
+
+
 
 @app.route('/add_pfp', methods=['GET', 'POST'])
 def add_pfp():
@@ -207,7 +225,7 @@ def del_pfp():
 
         current_image_path = user.profile_picture
 
-        default_image = "/static/images/booksitelogoedit1 (1).png"
+        default_image = "/static/images/defaultPFP.png"
         user.profile_picture = default_image
         db.session.commit()
 
@@ -317,7 +335,7 @@ def register_user():
     user_email = request.form.get('email')
     user_username = request.form.get('username')
     user_password = request.form.get('password')
-    profile_picture = '/static/images/booksitelogoedit1 (1).png'
+    profile_picture = '/static/images/defaultPFP.png'
 
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')

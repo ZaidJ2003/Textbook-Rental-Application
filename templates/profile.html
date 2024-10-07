@@ -3,15 +3,19 @@
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/profile.css">
-<h1>Profile Page</h1>
-<img src="{{ image_url }}" alt="Profile Picture">
-<form action="{{ url_for('add_pfp') }}" method="POST" enctype="multipart/form-data">
-    <label for="image">Image:</label>
-    <input type="file" name="image" accept="image/png, image/jpeg, image/jpg">
-    
-    <button type="submit">Add or change profile picture</button>
-</form>
-<form action="{{ url_for('del_pfp') }}" method="POST" enctype="multipart/form-data">
-    <button type="submit">Delete profile picture</button>
-</form>
+
+<div class="profile-container">
+    <h1>Profile Page</h1>
+    <img src="{{ image_url }}" alt="Profile Picture">
+
+    <form action="{{ url_for('add_pfp') }}" method="POST" enctype="multipart/form-data">
+        <label for="image">Image:</label>
+        <input type="file" name="image" accept="image/png, image/jpeg, image/jpg">
+        <button type="submit">Add or change profile picture</button>
+    </form>
+
+    <form action="{{ url_for('del_pfp') }}" method="POST" enctype="multipart/form-data">
+        <button type="submit">Delete profile picture</button>
+    </form>
+</div>
 {% endblock %}
