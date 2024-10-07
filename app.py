@@ -70,7 +70,13 @@ def del_textbook():
         flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
-    textbook_id = request.args.get('textbook_id')              #gets textbook_id and finds the textbook that matches that id in the database
+    textbook_id = request.args.get('textbook_id')    
+
+    cart_items_to_delete = db.session.query(CartItem).filter(CartItem.textbook_id == textbook_id).all()
+    for item in cart_items_to_delete:
+        db.session.delete(item)
+    
+          #gets textbook_id and finds the textbook that matches that id in the database
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
@@ -81,14 +87,8 @@ def del_textbook():
 
     if os.path.exists(image_path):             #removes the image
         os.remove(image_path)
-
-    filtered_textbooks = db.session.query(Textbook).filter(                #creates a list of textbooks that the user uploaded and stores it in filtered_textbooks
-        or_(
-            Textbook.owners_user_id == session['user']['user_id']
-        )
-    ).all()
-
-    return render_template('addDeleteTextbook.html', textbooks=filtered_textbooks)
+    flash("Textbook deleted successfully", category='success')   
+    return redirect(url_for('addDeleteTextbook'))
 
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
