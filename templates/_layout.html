@@ -122,21 +122,26 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const button = document.querySelector('.close');
-        if (button !== null) {
-            button.addEventListener('click', hideMsg);
-        }
-        const flashMsg = document.querySelector('.flash');
-        flashMsg.setTimeout(() => {
-            flashMsg.style.display = 'none';
-            }, 3000);
-
-        function hideMsg() {
-        const message = button.parentElement;
-        message.classList.remove('show');
-        message.style.display = 'none';
-        }
+        window.onload = function() {
+            const flashMessage = document.querySelector('.flash');
+            const button = document.querySelector('.close');
+            
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.style.display = 'none';
+                }, 3000);
+            }
+            
+            if (button) {
+                button.addEventListener('click', () => {
+                    const message = button.parentElement;
+                    message.classList.remove('show');
+                    message.style.display = 'none';
+                });
+            }
+        };
     </script>
+    
 </body>
 
 </html>
