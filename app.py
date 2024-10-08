@@ -76,7 +76,7 @@ def del_textbook():
     for item in cart_items_to_delete:
         db.session.delete(item)
     
-          #gets textbook_id and finds the textbook that matches that id in the database
+    #gets textbook_id and finds the textbook that matches that id in the database
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
