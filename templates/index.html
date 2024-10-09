@@ -4,54 +4,51 @@ x
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/main.css">
-<!-- <div class="container pt-4">
-  <div class="non-footer">
-    <div class="contain-to-grid">
-      <nav class="top-bar" data-topbar>
-        <ul class="title-area">
-          <li class="home"></li>
-          <li class="name"></li>
-        </ul>
-        <section class="top-bar-section"></section>
-      </nav>
-    </div>
-
-    <div class="topbar">
-      <div class="wrapper">
-        <div class="search">
-          <h1>Search for textbooks/course material</h1>
-          <form name="searchform" action="/search.php" method="post" class="form-search">
-            <input id="search_box" name="keywords" placeholder="Enter" class="txt-search big" autocomplete="off" tabindex="1">
-            <input type="submit" class="btn-search big">
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div> -->
 
 <div class="search-container">
+    <h2 class="bold-800">Welcome to BookBorrow</h2>
+    <h3 class="bold-500">Search for your required books at a discounted rate:</h3>
   <form action="{{ url_for('search') }}" class="search-bar" method="GET">
     <input type="text" placeholder="Search Textbook..." name="search_query">
     <button type="submit"><img src="/static/images/search.png"></button>
   </form>
+  <div class="search-options">
+    <a href="search?search_query=Programming">Programming</a>
+    <a href="search?search_query=Python">Python</a>
+    <a href="search?search_query=Machine Learning">Machine Learning</a>
+    <a href="search?search_query=Data Structures">Data Structures</a>
+    <a href="search?search_query=SQL">SQL</a>
+    <a href="search?search_query=Web Design">Web Design</a>
+  </div>
 </div>
 
-<div class="wrapper">
-  <div class="fullbox index">
-      <div style="background: ghostwhite; 
-      font-size: 20px; 
-      padding: 10px; 
-      border: 1px solid lightgray; 
-      margin: 10px;">
-          <h2 style="margin-top: 0px;">What is our website?</h2>
-          
-          <p>This site is meant to be allow students to facilitate trade of textbooks or other course materials among students without the overprices fees you would see while buying retail textbooks. You can set textbooks you want to the cart and directly message the current owner while setting up specific meetings to exchange whenever needed.</p>
-          
-          <h2> How do I rent Textbooks?</h2>
-
-          <p> First you need to make an account and then you can browse using the search bar to add to your cart. You can also check the latest posted listing by clicking the search bar without typing anything in!</p>
+<div class="content mt-4">
+  <h2 class="text-center bold-800 mb-4">Explore the students experience</h2>
+  <div class="testemonials">
+    <div class="card" style="width: 18rem;">
+      <img class="card-img-top mt-2" src="/static/images/fake-pic.jpg" alt="Card image cap">
+      <p class="text-center">John</p>
+      <div class="card-body">
+        <h5 class="card-title text-center">Rating: ★★★★★</h5>
+        <p class="card-text text-center">"I absolutely love BookBorrow! As a college student on a budget, finding affordable textbooks has been a challenge, but this app has saved me so much money. Plus, I can quickly search for specific books, and the interface is super user-friendly. Highly recommended!"</p>
       </div>
+    </div>
+    <div class="card" style="width: 18rem;">
+      <img class="card-img-top mt-2" src="static/images/fake-pic.jpg" alt="Card image cap">
+      <p class="text-center">Jack</p>
+      <div class="card-body">
+        <h5 class="card-title text-center">Rating: ★★★★★</h5>
+        <p class="card-text text-center">"This app is a lifesaver! It’s way easier to find the books I need than going to the campus bookstore, and the prices are usually lower. I just wish they had a few more categories to browse by subject. But overall, it’s an amazing resource for students!"</p>
+      </div>
+    </div>
+    <div class="card" style="width: 18rem;">
+      <img class="card-img-top mt-2" src="static/images/fake-pic.jpg" alt="Card image cap">
+      <p class="text-center">Smith</p>
+      <div class="card-body">
+        <h5 class="card-title text-center">Rating: ★★★★★</h5>
+        <p class="card-text text-center">"I’ve saved a ton using BookBorrow! I’m able to find almost every book I need for class, and the prices are really affordable. The download feature for a list of books is a great touch for organizing what I need for each semester. Keep up the great work!"</p>
+      </div>
+    </div>
   </div>
 </div>
 
