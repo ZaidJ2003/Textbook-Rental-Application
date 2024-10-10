@@ -20,7 +20,7 @@
 </style>
 
 <body>
-    <header>
+    <header> 
         <section class="flash">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -44,7 +44,6 @@
                 {% endif %}
             {% endwith %}
         </section>
-        
         <nav class="navbar navbar-expand-lg bg-body-tertiary"> 
             <div class="container-fluid">
                 <a class="navbar-brand" href="/"><span style="font-family: Lucida Console">Textbook Rental</span></a>
@@ -71,6 +70,7 @@
                     {% if 'user' in session %}
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"></li>
+                                <img src="{{ g.profile_pic_url }}" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
                                 <form action="/logout" method="post">
                                     <button type="submit" class="nav-link">Logout</button>
                                 </form>
