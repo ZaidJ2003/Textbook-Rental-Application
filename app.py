@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 import stripe
-
+from flask import g
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
 # Flask Initialization
@@ -70,7 +70,13 @@ def del_textbook():
         flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
-    textbook_id = request.args.get('textbook_id')              #gets textbook_id and finds the textbook that matches that id in the database
+    textbook_id = request.args.get('textbook_id')    
+
+    cart_items_to_delete = db.session.query(CartItem).filter(CartItem.textbook_id == textbook_id).all()
+    for item in cart_items_to_delete:
+        db.session.delete(item)
+    
+    #gets textbook_id and finds the textbook that matches that id in the database
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
@@ -81,14 +87,8 @@ def del_textbook():
 
     if os.path.exists(image_path):             #removes the image
         os.remove(image_path)
-
-    filtered_textbooks = db.session.query(Textbook).filter(                #creates a list of textbooks that the user uploaded and stores it in filtered_textbooks
-        or_(
-            Textbook.owners_user_id == session['user']['user_id']
-        )
-    ).all()
-
-    return render_template('addDeleteTextbook.html', textbooks=filtered_textbooks)
+    flash("Textbook deleted successfully", category='success')   
+    return redirect(url_for('addDeleteTextbook'))
 
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
@@ -150,6 +150,24 @@ def profile():
 
     return render_template('profile.html', image_url=image_url)
 
+#app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
+
+@app.before_request
+def before_request():
+    if 'user' in session:
+        current_user = db.session.query(users).filter(                
+                or_(
+                    users.user_id == session['user']['user_id']
+                )
+            ).first()
+        if current_user:
+            g.profile_pic_url = current_user.profile_picture
+        else:
+            g.profile_pic_url = "/static/images/defaultPFP.png"
+    else:
+        g.profile_pic_url = "/static/images/defaultPFP.png"
+
+
 
 @app.route('/add_pfp', methods=['GET', 'POST'])
 def add_pfp():
@@ -207,7 +225,7 @@ def del_pfp():
 
         current_image_path = user.profile_picture
 
-        default_image = "/static/images/booksitelogoedit1 (1).png"
+        default_image = "/static/images/defaultPFP.png"
         user.profile_picture = default_image
         db.session.commit()
 
@@ -317,7 +335,7 @@ def register_user():
     user_email = request.form.get('email')
     user_username = request.form.get('username')
     user_password = request.form.get('password')
-    profile_picture = '/static/images/booksitelogoedit1 (1).png'
+    profile_picture = '/static/images/defaultPFP.png'
 
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')
