@@ -20,7 +20,7 @@
 </style>
 
 <body>
-    <header>
+    <header> 
         <section class="flash">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -44,7 +44,6 @@
                 {% endif %}
             {% endwith %}
         </section>
-        
         <nav class="navbar navbar-expand-lg bg-body-tertiary"> 
             <div class="container-fluid">
                 <a class="navbar-brand" href="/"><span style="font-family: Lucida Console">Textbook Rental</span></a>
@@ -64,12 +63,15 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/addDeleteTextbook">Manage Textbooks</a>
                         </li>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="/profile">Profile</a>
-                        </li>
+                        </li> -->
                     </ul>
                     {% if 'user' in session %}
                         <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a href="/profile"><img src="{{ g.profile_pic_url }}" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;"></a>
+                            </li>
                             <li class="nav-item"></li>
                                 <form action="/logout" method="post">
                                     <button type="submit" class="nav-link">Logout</button>
@@ -95,44 +97,36 @@
     </header>
 
     <main>
-        
         {% block body %}
         <!-- The child template will inject content here -->
         {% endblock %}
-        <!--<div class="wrapper">
-            <div class="fullbox index">
-                <div style="background: ghostwhite; 
-                font-size: 20px; 
-                padding: 10px; 
-                border: 1px solid lightgray; 
-                margin: 10px;">
-                    <h2 style="margin-top: 0px;">What is our website?</h2>
-                    
-                    <p>This site is meant to be allow students to facilitate trade of textbooks or other course materials among students without the overprices fees you would see while buying retail textbooks. You can set textbooks you want to the cart and directly message the current owner while setting up specific meetings to exchange whenever needed.</p>
-                    
-                    <h2> How do I rent Textbooks?</h2>
-
-                    <p> First you need to make an account and then you can browse using the search bar to add to your cart. You can also check the latest posted listing by clicking the search bar without typing anything in!</p>
-                </div>
-            </div>
-        </div> -->
     </main>
+    
     <footer class="footer">
         &copy; 2024 TextRent. All rights reserved.
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const button = document.querySelector('.close')
-        if (button !== null) {
-        button.addEventListener('click', hideMsg)
-        }
-
-        function hideMsg() {
-        const message = button.parentElement;
-        message.classList.remove('show')
-        message.style.display = 'none';
-        }
+        window.onload = function() {
+            const flashMessage = document.querySelector('.flash');
+            const button = document.querySelector('.close');
+            
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.style.display = 'none';
+                }, 3000);
+            }
+            
+            if (button) {
+                button.addEventListener('click', () => {
+                    const message = button.parentElement;
+                    message.classList.remove('show');
+                    message.style.display = 'none';
+                });
+            }
+        };
     </script>
+    
 </body>
 
 </html>
