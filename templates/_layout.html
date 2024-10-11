@@ -63,14 +63,16 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/addDeleteTextbook">Manage Textbooks</a>
                         </li>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="/profile">Profile</a>
-                        </li>
+                        </li> -->
                     </ul>
                     {% if 'user' in session %}
                         <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a href="/profile"><img src="{{ g.profile_pic_url }}" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;"></a>
+                            </li>
                             <li class="nav-item"></li>
-                                <img src="{{ g.profile_pic_url }}" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
                                 <form action="/logout" method="post">
                                     <button type="submit" class="nav-link">Logout</button>
                                 </form>
