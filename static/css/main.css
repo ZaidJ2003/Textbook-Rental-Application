@@ -5,6 +5,11 @@
 }
 
 body {
+    /* background-image: url('/static/images/test.jpg');
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-attachment: fixed; */
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     display: grid;
@@ -93,7 +98,8 @@ footer {
 .search-bar input {
     background: transparent;
     flex: 1;
-    border: 0;
+    border:#005A91;
+    outline: none;
     outline: none;
     padding: 24px 20px;
     font-size:20px;
@@ -121,6 +127,19 @@ footer {
     object-fit: cover;
     margin: 0 auto; 
     display: block;
+}
+
+.card {
+    background-color: #f7f7f7; 
+    border: 1px solid #41aea9; 
+}
+
+.card-title {
+    color: #005A91; 
+}
+
+.card-text {
+    color: #34495e; 
 }
 
 /* Utility Classes */
