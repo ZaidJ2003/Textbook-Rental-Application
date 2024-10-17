@@ -133,6 +133,7 @@
 .book-buy-button {
     width: 100%;
     padding: 10px 20px;
+    margin-bottom: 20px;
     font-size: 1rem;
     color: #fff;
     background-color: #41aea9;
