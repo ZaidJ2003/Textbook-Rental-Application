@@ -17,13 +17,21 @@
                     </div>
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
-                            <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}">
-                                <img src="{{ session['user']['profile_picture']}}" alt="avatar">
-                                <div class="about">
-                                    <div class="name">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
-                                    <!-- <div class="status"> <i class="fa fa-circle offline"></i> left 7 mins ago </div>                                             -->
-                                </div>
-                            </li>
+                            {% if conversation.sender_user_id == session['user']['user_id'] %}
+                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}">
+                                    <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
+                                    <div class="about">
+                                        <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
+                                    </div>
+                                </li>
+                            {% else %}
+                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}">
+                                    <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
+                                    <div class="about">
+                                        <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
+                                    </div>
+                                </li>
+                            {% endif %}
                         {% endfor %}
                     </ul>
                 </div>
@@ -66,21 +74,27 @@
                     </div>
                     <div class="chat-message clearfix">
                         <div class="input-group mb-0">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fa fa-send"></i></span>
-                            </div>
-                            <input type="text" class="form-control" placeholder="Enter text here...">                                    
+                            <form action="/direct_messaging" class="input-group mb-0" method="post">
+                                <input type="hidden" name="receiver_id" id="receiver_id">
+                                <input type="text" name="text" class="form-control" placeholder="Enter text here..."> 
+                                <div class="input-group-prepend">
+                                    <button type="submit"><span class="input-group-text"><i class="fa fa-send"></i></span></button>
+                                </div>   
+                            </form>                            
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let usersList = document.getElementById('userList').children; 
-
+            const receiver_id = document.getElementById('receiver_id');
+            const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
+            
             for (let i = 0; i < usersList.length; i++) {
                 usersList[i].addEventListener('click', function () {
                     for (let j = 0; j < usersList.length; j++) {
@@ -89,20 +103,32 @@
 
                     if (!this.classList.contains('active')) {
                         this.classList.add('active');
-                        const userId = this.getAttribute('data-user-id');
+                        const userId = usersList[i].getAttribute('data-user-id');
+                        const full_name = document.getElementById(`name-${userId}`);
                         let chat_header = document.getElementById('chat-header');
                         chat_header.innerHTML = 
                             `<a href="#">
-                                <img src= "{{ session['user']['profile_picture'] }}"" alt="avatar">
+                                <img src= "{{ session['user']['profile_picture'] }}" alt="avatar">
                             </a>
                             <div class="chat-about">
-                                
-                            </div>`
+                                <h6 class="m-b-0">${full_name.textContent}</h6>
+                            </div>`;
+                        receiver_id.value = userId;
                         loadMessages(userId); 
-                        
                     }
                 });
+
+                // if user comes from purchase book for pikcup button, load chat with buyer. Else, load first chat
+                const userId = usersList[i].getAttribute('data-user-id');
+                if (userId === selectedConversationRecieverId) {
+                    usersList[i].click();  
+                } 
+                // else {
+                //     usersList[0].click();  
+                // }
+
             }
+            
         });
 
         function loadMessages(userId) {
@@ -115,21 +141,19 @@
                 data.messages.forEach(message => {
                     const messageElement = document.createElement('li');
                     messageElement.className = 'clearfix';
-                    
                     if (message.user_id === "{{ session['user']['user_id'] }}") {
                         messageElement.innerHTML = `
-                            <div class="message-data text-right">
-                                <span class="message-data-time">${message.created_at}</span>
-                                <img src="{{ session['user']['profile_picture'] }}" alt="avatar">
+                            <div class="message-data" style="display:flex;justify-content:flex-end; gap:.1rem">
+                                <div class="message other-message">${message.text}</div>
+                                <img src="${message.img}"" alt="avatar">
                             </div>
-                            <div class="message other-message float-right">${message.message_text}</div>
                         `;
                     } else {
-                        messageElement.innerHTML = `
-                            <div class="message-data">
-                                <span class="message-data-time">${message.created_at}</span>
+                        messageElement.innerHTML =`
+                            <div class="message-data" style="display:flex;justify-content:flex-start; gap:.1rem">
+                                <img src="${message.img}" alt="avatar">
+                                <div class="message other-message">${message.text}</div>
                             </div>
-                            <div class="message my-message">${message.message_text}</div>
                         `;
                     }
                     

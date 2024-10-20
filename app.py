@@ -266,7 +266,6 @@ def book():
     if textbook is None:
         return "Textbook not found", 404
 
-
     return render_template('book.html', textbook = textbook)
 
 @app.get('/about')
@@ -540,7 +539,7 @@ def get_dms_page():
 
     selected_conversation = None
     # If a user came from purchasing a book, check if they have an exsisting conversation
-    if seller_id:
+    if seller_id and str(seller_id) == str(user_id):  
         selected_conversation = Conversations.query.filter(
             ((Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)) |
             ((Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id))
@@ -548,12 +547,27 @@ def get_dms_page():
 
         # If it doesn't exist, create it as new convo
         if not selected_conversation:
-            selected_conversation = Conversations(sender_user_id=user_id, receiver_user_id=seller_id)
+            selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id)
             db.session.add(selected_conversation)
             db.session.commit()
 
     return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation)
 
+@app.post('/direct_messaging')
+def append_message():
+    message = request.form.get('text')
+    receiver_id = request.form.get('receiver_id')
+    current_conversation = Conversations.query.filter(
+        ((Conversations.sender_user_id == session['user']['user_id']) & (Conversations.receiver_user_id == receiver_id)) |
+        ((Conversations.receiver_user_id == session['user']['user_id']) & (Conversations.sender_user_id == receiver_id))
+    ).first()
+
+    if message and current_conversation:
+        msg = Messages(session['user']['user_id'], current_conversation.conversation_id, message)
+        db.session.add(msg)
+        db.session.commit()
+
+    return redirect('/direct_messaging')
 
 # This is the get endpoint used for the ajax calls just to get the messages so page isnt reloaded
 @app.get('/load_messages/<user_id>')
@@ -570,17 +584,15 @@ def load_messages(user_id):
         messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
         messages_data = []
         for msg in messages:
+            user = users.query.filter(users.user_id == msg.user_id).first()
             messages_data.append({
                 "user_id": msg.user_id, 
                 "text": msg.message_text, 
-                "created_at": msg.created_at
+                "created_at": msg.created_at,
+                "img": user.profile_picture if user else ""
             })
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
-
-@app.post('/direct_messaging')
-def DMs_page():
-    return render_template('direct_messaging.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

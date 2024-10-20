@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS cart_items (
     cart_id UUID,
     textbook_id UUID,
     quantity INT,
-    FOREIGN KEY (cart_id) REFERENCES carts(cart_id),
-    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id)
+    FOREIGN KEY (cart_id) REFERENCES carts(cart_id) ON DELETE CASCADE,
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
@@ -83,5 +83,5 @@ CREATE TABLE IF NOT EXISTS messages (
     message_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)ON DELETE CASCADE
 );
