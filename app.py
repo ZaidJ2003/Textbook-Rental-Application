@@ -3,7 +3,7 @@
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -455,6 +455,11 @@ def meetup():
         return redirect('/meetup')
     else:
         return render_template('index.html')
+    
+#temporary meetup page (specifically made to implement gmaps)
+@app.get('/meetup')
+def meetup_page():
+        return render_template('meetup.html')
 
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
@@ -516,6 +521,66 @@ def checkout():
     except Exception as e:
         flash('Error. Transaction failed', category="error")
         return redirect('/')
+
+# This is the get endpoint when user visits the DM's page
+@app.get('/direct_messaging')
+def get_dms_page():
+    user_id = session['user']['user_id']
+    
+    # seller ID if passed as a query parameter, would be a parameter if user buys a book for pickup then they
+    # would be redirected to DM's page with seller selected to chat with
+    seller_id = request.args.get('seller_id')
+    
+    # get all users conversations. Filters can be confusing but we want all convos where user has sent a msg or 
+    # rceieved one hence user id for both filter 
+    conversations = Conversations.query.filter(
+        (Conversations.sender_user_id == user_id) |
+        (Conversations.receiver_user_id == user_id)
+    ).all()
+
+    selected_conversation = None
+    # If a user came from purchasing a book, check if they have an exsisting conversation
+    if seller_id:
+        selected_conversation = Conversations.query.filter(
+            ((Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)) |
+            ((Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id))
+        ).first()
+
+        # If it doesn't exist, create it as new convo
+        if not selected_conversation:
+            selected_conversation = Conversations(sender_user_id=user_id, receiver_user_id=seller_id)
+            db.session.add(selected_conversation)
+            db.session.commit()
+
+    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation)
+
+
+# This is the get endpoint used for the ajax calls just to get the messages so page isnt reloaded
+@app.get('/load_messages/<user_id>')
+def load_messages(user_id):
+    current_user_id = session['user']['user_id']
+    conversation = Conversations.query.filter(
+        (Conversations.sender_user_id == current_user_id) & 
+        (Conversations.receiver_user_id == user_id) |
+        (Conversations.receiver_user_id == current_user_id) & 
+        (Conversations.sender_user_id == user_id)
+    ).first()
+
+    if conversation:
+        messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
+        messages_data = []
+        for msg in messages:
+            messages_data.append({
+                "user_id": msg.user_id, 
+                "text": msg.message_text, 
+                "created_at": msg.created_at
+            })
+        return jsonify({"messages": messages_data})
+    return jsonify({"messages": []}) 
+
+@app.post('/direct_messaging')
+def DMs_page():
+    return render_template('direct_messaging.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
