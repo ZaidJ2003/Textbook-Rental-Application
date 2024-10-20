@@ -8,30 +8,39 @@
         <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}">
     </div>
     <div class="book-details">
-        <h1 class="book-title">{{ textbook.title }}</h1>
+        <h1 class="book-title">
+            {{ textbook.title }}
+            {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
+                (You own this book)
+            {% endif %}
+        </h1>
         <p class="book-description">{{ textbook.description }}</p>
         <p class="book-price">{{ textbook.price }}</p>
 
-        {% if 'user' in session %}
-        <div class="buy-options">
-                <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
-                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+        {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
+            <button class="book-buy-button" onclick="window.location.href='/addDeleteTextbook'">Manage Your Textbooks</button>
+        {% else %}
+            {% if 'user' in session %}
+            <div class="buy-options">
+                    <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                    </form>
+                    <form action="/direct_messaging" method="get">
+                        <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
+                        <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                    </form>
+            </div>
+            {% else %}
+            <div class="buy-options">
+                <form action="/login" method="get" class="buy-options">
                     <button class="book-buy-button">Add to Cart (Delivery Only)</button>
                 </form>
-                <form action="/direct_messaging" method="get">
-                    <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
+                <form action="/login" method="get" class="buy-options">
                     <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
                 </form>
-        </div>
-        {% else %}
-        <div class="buy-options">
-            <form action="/login" method="get" class="buy-options">
-                <button class="book-buy-button">Add to Cart (Delivery Only)</button>
-            </form>
-            <form action="/login" method="get" class="buy-options">
-                <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
-            </form>
-        </div>
+            </div>
+            {% endif %}
         {% endif %}
     </div>
 </div>

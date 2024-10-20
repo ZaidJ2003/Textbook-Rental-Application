@@ -211,6 +211,9 @@ def add_pfp():
 
     return render_template('profile.html')
 
+
+#comment for git video (Delete Later!!!)
+
 @app.route('/del_pfp', methods=['GET', 'POST'])
 def del_pfp():
     if 'user' not in session:
