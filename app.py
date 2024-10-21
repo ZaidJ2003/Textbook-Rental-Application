@@ -524,11 +524,17 @@ def checkout():
         flash('Error. Transaction failed', category="error")
         return redirect('/')
 
+# TO-DO: Fix having to refresh before new convo loads
+# Fix positioning of msg bar to be fixed
+
 # This is the get endpoint when user visits the DM's page
 @app.get('/direct_messaging')
 def get_dms_page():
-    user_id = session['user']['user_id']
+    if 'user' not in session:
+        flash("Must be logged in to access DM's page", category="error")
+        return redirect('/login')
     
+    user_id = session['user']['user_id']
     # seller ID if passed as a query parameter, would be a parameter if user buys a book for pickup then they
     # would be redirected to DM's page with seller selected to chat with
     seller_id = request.args.get('seller_id')
@@ -541,8 +547,9 @@ def get_dms_page():
     ).all()
 
     selected_conversation = None
+    isCreated = 'False'
     # If a user came from purchasing a book, check if they have an exsisting conversation
-    if seller_id and str(seller_id) == str(user_id):  
+    if seller_id and str(seller_id) != str(user_id):  
         selected_conversation = Conversations.query.filter(
             ((Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)) |
             ((Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id))
@@ -553,8 +560,9 @@ def get_dms_page():
             selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id)
             db.session.add(selected_conversation)
             db.session.commit()
+            isCreated = 'True'
 
-    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation)
+    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation, isCreated = isCreated)
 
 @app.post('/direct_messaging')
 def append_message():
@@ -570,7 +578,16 @@ def append_message():
         db.session.add(msg)
         db.session.commit()
 
-    return redirect('/direct_messaging')
+        user = users.query.filter(users.user_id == msg.user_id).first()
+        message_data = {
+            "user_id": msg.user_id,
+            "text": msg.message_text,
+            "created_at": msg.created_at,
+            "img": user.profile_picture if user else ""
+        }
+        return jsonify({'status': 'success', 'message': message_data})
+
+    return jsonify({'status': 'error', 'message': 'Message not sent'})
 
 # This is the get endpoint used for the ajax calls just to get the messages so page isnt reloaded
 @app.get('/load_messages/<user_id>')

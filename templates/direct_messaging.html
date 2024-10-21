@@ -4,7 +4,6 @@
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/direct_messaging.css">
-<!-- <div class="container"> -->
     <div class="row clearfix">
         <div class="col-lg-12">
             <div class="card chat-app">
@@ -38,45 +37,18 @@
                 <div class="chat">
                     <div class="chat-header clearfix">
                         <div class="row">
-                            <div class="col-lg-6" id="chat-header">
-                                <!-- <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info">
-                                    <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar">
-                                </a>
-                                <div class="chat-about">
-                                    <h6 class="m-b-0">Aiden Chavez</h6>
-                                    <small>Last seen: 2 hours ago</small>
-                                </div> -->
-                            </div>
+                            <div class="col-lg-6" id="chat-header"> <!-- content is loaded via JS --> </div>
                         </div>
                     </div>
                     <div class="chat-history" id="chat-history">
-                        <ul class="m-b-0">
-                            <!-- <li class="clearfix">
-                                <div class="message-data text-right">
-                                    <span class="message-data-time">10:10 AM, Today</span>
-                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar">
-                                </div>
-                                <div class="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
-                            </li>
-                            <li class="clearfix">
-                                <div class="message-data">
-                                    <span class="message-data-time">10:12 AM, Today</span>
-                                </div>
-                                <div class="message my-message">Are we meeting today?</div>                                    
-                            </li>                               
-                            <li class="clearfix">
-                                <div class="message-data">
-                                    <span class="message-data-time">10:15 AM, Today</span>
-                                </div>
-                                <div class="message my-message">Project has been already finished and I have results to show you.</div>
-                            </li> -->
-                        </ul>
+                        <ul class="m-b-0"> <!-- content is loaded via JS --> </ul>
+                        
                     </div>
                     <div class="chat-message clearfix">
                         <div class="input-group mb-0">
-                            <form action="/direct_messaging" class="input-group mb-0" method="post">
+                            <form action="/direct_messaging" class="input-group mb-0" id="msgForm" method="post">
                                 <input type="hidden" name="receiver_id" id="receiver_id">
-                                <input type="text" name="text" class="form-control" placeholder="Enter text here..."> 
+                                <input type="text" name="text" id="messageText" class="form-control" placeholder="Enter text here..."> 
                                 <div class="input-group-prepend">
                                     <button type="submit"><span class="input-group-text"><i class="fa fa-send"></i></span></button>
                                 </div>   
@@ -87,14 +59,13 @@
             </div>
         </div>
     </div>
-    
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
-            
+            const isCreated = "{{ isCreated }}";
             for (let i = 0; i < usersList.length; i++) {
                 usersList[i].addEventListener('click', function () {
                     for (let j = 0; j < usersList.length; j++) {
@@ -118,16 +89,32 @@
                     }
                 });
 
-                // if user comes from purchase book for pikcup button, load chat with buyer. Else, load first chat
+                if (isCreated === 'True') {
+                    console.log(isCreated);
+                    window.location.reload();
+                }
+
+                // if user comes from purchase book for pickup button, load chat with buyer. Else, load first chat
                 const userId = usersList[i].getAttribute('data-user-id');
                 if (userId === selectedConversationRecieverId) {
                     usersList[i].click();  
                 } 
-                // else {
-                //     usersList[0].click();  
-                // }
-
+                else {
+                    usersList[0].click();  
+                }
             }
+
+            const messageForm = document.getElementById('msgForm');
+            messageForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const receiverId = document.getElementById('receiver_id').value;
+                const messageText = document.getElementById('messageText').value;
+
+                if (receiverId && messageText.trim()) {
+                    sendMessage(receiverId, messageText);
+                }
+            });
             
         });
 
@@ -136,33 +123,59 @@
             .then(response => response.json())
             .then(data => {
                 const chatHistory = document.getElementById('chat-history').querySelector('ul');
-                chatHistory.innerHTML = '';
+                chatHistory.innerHTML = ''; 
 
                 data.messages.forEach(message => {
-                    const messageElement = document.createElement('li');
-                    messageElement.className = 'clearfix';
-                    if (message.user_id === "{{ session['user']['user_id'] }}") {
-                        messageElement.innerHTML = `
-                            <div class="message-data" style="display:flex;justify-content:flex-end; gap:.1rem">
-                                <div class="message other-message">${message.text}</div>
-                                <img src="${message.img}"" alt="avatar">
-                            </div>
-                        `;
-                    } else {
-                        messageElement.innerHTML =`
-                            <div class="message-data" style="display:flex;justify-content:flex-start; gap:.1rem">
-                                <img src="${message.img}" alt="avatar">
-                                <div class="message other-message">${message.text}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    chatHistory.appendChild(messageElement);
+                    appendMessageToChat(message);
                 });
             })
             .catch(error => console.error('Error fetching messages:', error));
         }
-        
+
+        function sendMessage(receiverId, messageText) {
+            fetch('/direct_messaging', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    receiver_id: receiverId,
+                    text: messageText,
+                })
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                if (data.status === 'success') {
+                    appendMessageToChat(data.message); 
+                    document.getElementById('messageText').value = ''; 
+                } else {
+                    console.error('Message sending failed:', data.message);
+                }
+            })
+            .catch(error => console.error('Error sending message:', error));
+        }
+
+        function appendMessageToChat(message) {
+            const chatHistory = document.getElementById('chat-history').querySelector('ul');
+            const messageElement = document.createElement('li');
+            messageElement.className = 'clearfix';
+
+            if (message.user_id === "{{ session['user']['user_id'] }}") {
+                messageElement.innerHTML = `
+                    <div class="message-data" style="display:flex;justify-content:flex-end; gap:.1rem">
+                        <div class="message other-message">${message.text}</div>
+                        <img src="${message.img}" alt="avatar">
+                    </div>
+                `;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="message-data" style="display:flex;justify-content:flex-start; gap:.1rem">
+                        <img src="${message.img}" alt="avatar">
+                        <div class="message other-message">${message.text}</div>
+                    </div>
+                `;
+            }
+            chatHistory.appendChild(messageElement);
+        }
     </script>
-<!-- </div>     -->
 {% endblock %}
