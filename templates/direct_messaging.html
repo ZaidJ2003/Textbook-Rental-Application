@@ -66,18 +66,22 @@
     {% endif %}
 
     <script>
+        // When page loads
         document.addEventListener("DOMContentLoaded", function () {
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
             const isCreated = "{{ isCreated }}";
             let isUserSelected = false;
+            //Add eventListener to each user in left panel of users that makes that user active and loads their convo
             for (let i = 0; i < usersList.length; i++) {
                 usersList[i].addEventListener('click', function () {
+                    //Remove active from any user if another user is clicked
                     for (let j = 0; j < usersList.length; j++) {
                         usersList[j].classList.remove('active');
                     }
 
+                    //Add active to clicked user. Updating receiver id so that if user sends msg its to appropriate user 
                     if (!this.classList.contains('active')) {
                         this.classList.add('active');
                         const userId = usersList[i].getAttribute('data-user-id');
@@ -107,6 +111,7 @@
                 } 
             }
 
+            //eventlistener to msg bar so that method is called to send post request to post endpoint to store msg in corresponding convo without reloading page 
             const messageForm = document.getElementById('msgForm');
             messageForm.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -118,13 +123,16 @@
                     sendMessage(receiverId, messageText);
                 }
             });
-
+            
+            // If not user is selected, select first one
             if (isUserSelected === false) {
                 usersList[0].click();
             }
             
         });
 
+        //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user
+        // Both can be used to load conversation then msgs of that conversation
         function loadMessages(userId) {
             fetch(`/load_messages/${userId}`)
             .then(response => response.json())
@@ -139,6 +147,7 @@
             .catch(error => console.error('Error fetching messages:', error));
         }
 
+        //Sends post request to endpoint with body of msg and reeiever ID
         function sendMessage(receiverId, messageText) {
             fetch('/direct_messaging', {
                 method: 'POST',
@@ -162,6 +171,7 @@
             .catch(error => console.error('Error sending message:', error));
         }
 
+        // appends msg to chat of current convo
         function appendMessageToChat(message) {
             const chatHistory = document.getElementById('chat-history').querySelector('ul');
             const messageElement = document.createElement('li');
