@@ -547,7 +547,6 @@ def get_dms_page():
     ).all()
 
     selected_conversation = None
-    isCreated = 'False'
     # If a user came from purchasing a book, check if they have an exsisting conversation
     if seller_id and str(seller_id) != str(user_id):  
         selected_conversation = Conversations.query.filter(
@@ -555,14 +554,14 @@ def get_dms_page():
             ((Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id))
         ).first()
 
-        # If it doesn't exist, create it as new convo
+        # If it doesn't exist, create it as new convo and append one
         if not selected_conversation:
             selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id)
             db.session.add(selected_conversation)
             db.session.commit()
-            isCreated = 'True'
+            conversations.append(selected_conversation)
 
-    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation, isCreated = isCreated)
+    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation)
 
 @app.post('/direct_messaging')
 def append_message():

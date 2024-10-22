@@ -68,10 +68,19 @@
     <script>
         // When page loads
         document.addEventListener("DOMContentLoaded", function () {
+            fetch(`/direct_messaging`)
+            .then(response => response.json())
+            .then(data => {
+                const chatHistory = document.getElementById('chat-history').querySelector('ul');
+                chatHistory.innerHTML = ''; 
+
+                data.messages.forEach(message => {
+                    appendMessageToChat(message);
+                });
+            })
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
-            const isCreated = "{{ isCreated }}";
             let isUserSelected = false;
             //Add eventListener to each user in left panel of users that makes that user active and loads their convo
             for (let i = 0; i < usersList.length; i++) {
@@ -99,10 +108,6 @@
                         isUserSelected = true;
                     }
                 });
-
-                if (isCreated === 'True') {
-                    window.location.reload();
-                }
 
                 // if user comes from purchase book for pickup button, load chat with buyer. Else, load first chat
                 const userId = usersList[i].getAttribute('data-user-id');
