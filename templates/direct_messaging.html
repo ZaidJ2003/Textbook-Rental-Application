@@ -18,17 +18,21 @@
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
                             {% if conversation.sender_user_id == session['user']['user_id'] %}
-                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}">
+                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
                                     <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
+                                        <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
+                                        <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
                                     </div>
                                 </li>
                             {% else %}
-                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}">
+                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
                                     <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
+                                        <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
+                                        <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
                                     </div>
                                 </li>
                             {% endif %}
@@ -38,7 +42,7 @@
                 <div class="chat">
                     <div class="chat-header clearfix">
                         <div class="row">
-                            <div class="col-lg-6" id="chat-header"> <!-- content is loaded via JS --> </div>
+                            <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
                         </div>
                     </div>
                     <div class="chat-history" id="chat-history">
@@ -68,16 +72,6 @@
     <script>
         // When page loads
         document.addEventListener("DOMContentLoaded", function () {
-            fetch(`/direct_messaging`)
-            .then(response => response.json())
-            .then(data => {
-                const chatHistory = document.getElementById('chat-history').querySelector('ul');
-                chatHistory.innerHTML = ''; 
-
-                data.messages.forEach(message => {
-                    appendMessageToChat(message);
-                });
-            })
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
@@ -94,14 +88,18 @@
                     if (!this.classList.contains('active')) {
                         this.classList.add('active');
                         const userId = usersList[i].getAttribute('data-user-id');
-                        const full_name = document.getElementById(`name-${userId}`);
+                        const textbookId = usersList[i].getAttribute('textbook-id');
+                        const imageId = usersList[i].getAttribute('image-id');
+                        const full_name = document.getElementById(`name-${userId}`).textContent;
+                        const textbook_title = document.getElementById(`textbook-${textbookId}`).value;
+                        const conversation_img = document.getElementById(`image-${imageId}`).value;
                         let chat_header = document.getElementById('chat-header');
                         chat_header.innerHTML = 
                             `<a href="#">
-                                <img src= "{{ session['user']['profile_picture'] }}" alt="avatar">
+                                <img src= "${conversation_img}" alt="avatar">
                             </a>
                             <div class="chat-about">
-                                <h6 class="m-b-0">${full_name.textContent}</h6>
+                                <h3 class="m-b-0">${full_name} | ${textbook_title} </h3>
                             </div>`;
                         receiver_id.value = userId;
                         loadMessages(userId); 
@@ -112,7 +110,9 @@
                 // if user comes from purchase book for pickup button, load chat with buyer. Else, load first chat
                 const userId = usersList[i].getAttribute('data-user-id');
                 if (userId === selectedConversationRecieverId) {
-                    usersList[i].click();  
+                    usersList[i].click();
+                    const full_name = document.getElementById(`name-${userId}`.textContent);
+                    document.getElementById('messageText').value = `Is this item still available?`; 
                 } 
             }
 

@@ -538,6 +538,7 @@ def get_dms_page():
     # seller ID if passed as a query parameter, would be a parameter if user buys a book for pickup then they
     # would be redirected to DM's page with seller selected to chat with
     seller_id = request.args.get('seller_id')
+    textbook_id = request.args.get('textbook_id')
     
     # get all users conversations. Filters can be confusing but we want all convos where user has sent a msg or 
     # rceieved one hence user id for both filter 
@@ -556,7 +557,7 @@ def get_dms_page():
 
         # If it doesn't exist, create it as new convo and append one
         if not selected_conversation:
-            selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id)
+            selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id, textbook_id=textbook_id)
             db.session.add(selected_conversation)
             db.session.commit()
             conversations.append(selected_conversation)

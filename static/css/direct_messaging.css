@@ -298,6 +298,12 @@ button {
     height: 100%;
 }
 
+.header-info {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+}
+
 @media only screen and (max-width: 767px) {
     .chat-app .people-list {
         height: 465px;

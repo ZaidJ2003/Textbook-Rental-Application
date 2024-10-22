@@ -28,6 +28,7 @@
                     </form>
                     <form action="/direct_messaging" method="get">
                         <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
                         <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
                     </form>
             </div>
