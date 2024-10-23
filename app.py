@@ -536,9 +536,6 @@ def get_dms_page():
     # would be redirected to DM's page with seller selected to chat with
     seller_id = request.args.get('seller_id')
     textbook_id = request.args.get('textbook_id')
-    print(user_id)
-    print(seller_id)
-    print(textbook_id)
     
     # get all users conversations. Filters can be confusing but we want all convos where user has sent a msg or 
     # rceieved one hence user id for both filter 
@@ -645,6 +642,24 @@ def load_messages(user_id, textbook_id):
             })
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
+
+# Endpoint for searching a user - will finish later
+# @app.post('/message_search')
+# def search_users():
+#     str_query = request.form.get('str_query', '').lower()
+#     filtered_users = None
+#     selected_conversation = None
+#     if str_query:
+#         filtered_users = users.query.filter(
+#             or_(
+#                 users.first_name.ilike(f'%{str_query}%'),
+#                 users.last_name.ilike(f'%{str_query}%')
+#             )
+#         ).all()
+    
+#     return render_template('direct_messaging.html', conversations = filtered_users, selected_conversation = selected_conversation)
+#         return jsonify( {"filtered_users": [filtered_users]} )
+#     return jsonify( {"filtered_users": []} )
 
 if __name__ == '__main__':
     app.run(debug=True)
