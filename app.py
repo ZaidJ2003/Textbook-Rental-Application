@@ -524,9 +524,6 @@ def checkout():
         flash('Error. Transaction failed', category="error")
         return redirect('/')
 
-# TO-DO: Fix having to refresh before new convo loads
-# Fix positioning of msg bar to be fixed
-
 # This is the get endpoint when user visits the DM's page
 @app.get('/direct_messaging')
 def get_dms_page():
@@ -539,6 +536,9 @@ def get_dms_page():
     # would be redirected to DM's page with seller selected to chat with
     seller_id = request.args.get('seller_id')
     textbook_id = request.args.get('textbook_id')
+    print(user_id)
+    print(seller_id)
+    print(textbook_id)
     
     # get all users conversations. Filters can be confusing but we want all convos where user has sent a msg or 
     # rceieved one hence user id for both filter 
@@ -549,14 +549,23 @@ def get_dms_page():
 
     selected_conversation = None
     # If a user came from purchasing a book, check if they have an exsisting conversation
+    # We want to create a convo if doesnt exist between seller and buyer and the textbook_id
     if seller_id and str(seller_id) != str(user_id):  
-        selected_conversation = Conversations.query.filter(
-            ((Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)) |
-            ((Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id))
+        selected_conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
         ).first()
 
+        print(selected_conversation)
+
         # If it doesn't exist, create it as new convo and append one
-        if not selected_conversation:
+        if not selected_conversation and textbook_id:
             selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id, textbook_id=textbook_id)
             db.session.add(selected_conversation)
             db.session.commit()
@@ -568,10 +577,22 @@ def get_dms_page():
 def append_message():
     message = request.form.get('text')
     receiver_id = request.form.get('receiver_id')
+    textbook_id = request.form.get('textbook_id')
     current_conversation = Conversations.query.filter(
         ((Conversations.sender_user_id == session['user']['user_id']) & (Conversations.receiver_user_id == receiver_id)) |
         ((Conversations.receiver_user_id == session['user']['user_id']) & (Conversations.sender_user_id == receiver_id))
     ).first()
+
+    current_conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == session['user']['user_id']) & (Conversations.receiver_user_id == receiver_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == session['user']['user_id']) & (Conversations.sender_user_id == receiver_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
+        ).first()
 
     if message and current_conversation:
         msg = Messages(session['user']['user_id'], current_conversation.conversation_id, message)
@@ -590,15 +611,26 @@ def append_message():
     return jsonify({'status': 'error', 'message': 'Message not sent'})
 
 # This is the get endpoint used for the ajax calls just to get the messages so page isnt reloaded
-@app.get('/load_messages/<user_id>')
-def load_messages(user_id):
+@app.get('/load_messages/<user_id>/<textbook_id>')
+def load_messages(user_id, textbook_id):
     current_user_id = session['user']['user_id']
-    conversation = Conversations.query.filter(
-        (Conversations.sender_user_id == current_user_id) & 
-        (Conversations.receiver_user_id == user_id) |
-        (Conversations.receiver_user_id == current_user_id) & 
-        (Conversations.sender_user_id == user_id)
-    ).first()
+    # conversation = Conversations.query.filter(
+    #     (Conversations.sender_user_id == current_user_id) & 
+    #     (Conversations.receiver_user_id == user_id) |
+    #     (Conversations.receiver_user_id == current_user_id) & 
+    #     (Conversations.sender_user_id == user_id) 
+    # ).first()
+
+    conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == current_user_id) & (Conversations.receiver_user_id == user_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == current_user_id) & (Conversations.sender_user_id == user_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
+        ).first()
 
     if conversation:
         messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()

@@ -54,6 +54,7 @@
                         <div class="input-group mb-0">
                             <form action="/direct_messaging" class="input-group mb-0" id="msgForm" method="post">
                                 <input type="hidden" name="receiver_id" id="receiver_id">
+                                <input type="hidden" name="textbook_id" id="textbook_id">
                                 <input type="text" name="text" id="messageText" class="form-control" placeholder="Enter text here..."> 
                                 <div class="input-group-prepend">
                                     <button type="submit"><span class="input-group-text"><i class="fa fa-send"></i></span></button>
@@ -74,6 +75,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
+            const textbook_id = document.getElementById('textbook_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
             let isUserSelected = false;
             //Add eventListener to each user in left panel of users that makes that user active and loads their convo
@@ -95,14 +97,15 @@
                         const conversation_img = document.getElementById(`image-${imageId}`).value;
                         let chat_header = document.getElementById('chat-header');
                         chat_header.innerHTML = 
-                            `<a href="#">
+                            `<a href="#" class="header-img">
                                 <img src= "${conversation_img}" alt="avatar">
                             </a>
                             <div class="chat-about">
                                 <h3 class="m-b-0">${full_name} | ${textbook_title} </h3>
                             </div>`;
                         receiver_id.value = userId;
-                        loadMessages(userId); 
+                        textbook_id.value = textbookId;
+                        loadMessages(userId, textbookId); 
                         isUserSelected = true;
                     }
                 });
@@ -123,9 +126,10 @@
 
                 const receiverId = document.getElementById('receiver_id').value;
                 const messageText = document.getElementById('messageText').value;
+                const textbookId = document.getElementById('textbook_id').value;
 
-                if (receiverId && messageText.trim()) {
-                    sendMessage(receiverId, messageText);
+                if (receiverId && messageText.trim() && textbookId) {
+                    sendMessage(receiverId, messageText, textbookId);
                 }
             });
             
@@ -138,8 +142,8 @@
 
         //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user
         // Both can be used to load conversation then msgs of that conversation
-        function loadMessages(userId) {
-            fetch(`/load_messages/${userId}`)
+        function loadMessages(userId, textbookId) {
+            fetch(`/load_messages/${userId}/${textbookId}`)
             .then(response => response.json())
             .then(data => {
                 const chatHistory = document.getElementById('chat-history').querySelector('ul');
@@ -153,7 +157,7 @@
         }
 
         //Sends post request to endpoint with body of msg and reeiever ID
-        function sendMessage(receiverId, messageText) {
+        function sendMessage(receiverId, messageText, textbookId) {
             fetch('/direct_messaging', {
                 method: 'POST',
                 headers: {
@@ -162,6 +166,7 @@
                 body: new URLSearchParams({
                     receiver_id: receiverId,
                     text: messageText,
+                    textbook_id: textbookId
                 })
             })
             .then(response => response.json()) 
