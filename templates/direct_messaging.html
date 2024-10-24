@@ -1,0 +1,254 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Cart</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/direct_messaging.css">
+    {% if conversations|length > 0 %}
+    <div class="row clearfix main-container">
+        <div class="col-lg-12">
+            <div class="card chat-app">
+                <div id="plist" class="people-list">
+                    <div class="input-group">
+                        <form class="search-container" id="searchFrom">
+                            <div class="input-group-prepend">
+                                <button><span class="input-group-text"><i class="fa fa-search"></i></span></button>
+                            </div>
+                            <input type="text" id="search-text" name="search-text" class="form-control" placeholder="Search...">
+                        </form>
+                    </div>
+                    <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
+                        {% for conversation in conversations %}
+                            {% if conversation.sender_user_id == session['user']['user_id'] %}
+                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
+                                    <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
+                                    <div class="about">
+                                        <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
+                                        <!-- <div class="text-small">| {{ conversation.textbook.title }}</div> -->
+                                        <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
+                                        <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
+                                    </div>
+                                </li>
+                            {% else %}
+                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
+                                    <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
+                                    <div class="about">
+                                        <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
+                                        <!-- <div class="text-small">{{ conversation.textbook.title }}</div> -->
+                                        <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
+                                        <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
+                                    </div>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="chat">
+                    <div class="chat-header clearfix">
+                        <div class="row">
+                            <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
+                        </div>
+                    </div>
+                    <div class="chat-history" id="chat-history">
+                        <ul class="m-b-0"> <!-- content is loaded via JS --> </ul>
+                        
+                    </div>
+                    
+                    <div class="chat-message clearfix">
+                        <div class="input-group mb-0">
+                            <form action="/direct_messaging" class="input-group mb-0" id="msgForm" method="post">
+                                <input type="hidden" name="receiver_id" id="receiver_id">
+                                <input type="hidden" name="textbook_id" id="textbook_id">
+                                <input type="text" name="text" id="messageText" class="form-control" placeholder="Enter text here..."> 
+                                <div class="input-group-prepend">
+                                    <button type="submit"><span class="input-group-text"><i class="fa fa-send"></i></span></button>
+                                </div>   
+                            </form>                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <h1 class="mt-4 ml-2">No exisiting chats...Search for some textbooks and schedule some meetups with other users!</h1>
+    {% endif %}
+
+    <script>
+        // When page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            let usersList = document.getElementById('userList').children; 
+            const receiver_id = document.getElementById('receiver_id');
+            const textbook_id = document.getElementById('textbook_id');
+            const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
+            const selectedConversationTextboodId = "{{ selected_conversation.textbook_id if selected_conversation else '' }}";
+            let isUserSelected = false;
+            //Add eventListener to each user in left panel of users that makes that user active and loads their convo
+            for (let i = 0; i < usersList.length; i++) {
+                usersList[i].addEventListener('click', function () {
+                    //Remove active from any user if another user is clicked
+                    for (let j = 0; j < usersList.length; j++) {
+                        usersList[j].classList.remove('active');
+                    }
+
+                    //Add active to clicked user. Updating receiver id so that if user sends msg its to appropriate user 
+                    if (!this.classList.contains('active')) {
+                        this.classList.add('active');
+                        const userId = usersList[i].getAttribute('data-user-id');
+                        const textbookId = usersList[i].getAttribute('textbook-id');
+                        const imageId = usersList[i].getAttribute('image-id');
+                        const full_name = document.getElementById(`name-${userId}`).textContent;
+                        const textbook_title = document.getElementById(`textbook-${textbookId}`).value;
+                        const conversation_img = document.getElementById(`image-${imageId}`).value;
+                        let chat_header = document.getElementById('chat-header');
+                        chat_header.innerHTML = 
+                            `<a href="#" class="header-img">
+                                <img src= "${conversation_img}" alt="avatar">
+                            </a>
+                            <div class="chat-about">
+                                <h3 class="m-b-0">${full_name} | ${textbook_title} </h3>
+                            </div>`;
+                        receiver_id.value = userId;
+                        textbook_id.value = textbookId;
+                        loadMessages(userId, textbookId); 
+                        isUserSelected = true;
+                    }
+                });
+
+                // if user comes from purchase book for pickup button, load chat with buyer. Else, load first chat
+                const userId = usersList[i].getAttribute('data-user-id');
+                const textbookId = usersList[i].getAttribute('textbook-id');
+                if (userId === selectedConversationRecieverId && selectedConversationTextboodId === textbookId) {
+                    usersList[i].click();
+                    const full_name = document.getElementById(`name-${userId}`.textContent);
+                    document.getElementById('messageText').value = `Is this item still available?`; 
+                } 
+            }
+
+            //eventlistener to msg bar so that method is called to send post request to post endpoint to store msg in corresponding convo without reloading page 
+            const messageForm = document.getElementById('msgForm');
+            messageForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const receiverId = document.getElementById('receiver_id').value;
+                const messageText = document.getElementById('messageText').value;
+                const textbookId = document.getElementById('textbook_id').value;
+
+                if (receiverId && messageText.trim() && textbookId) {
+                    sendMessage(receiverId, messageText, textbookId);
+                }
+            });
+
+            // const searchForm = document.getElementById('searchFrom');
+            // searchForm.addEventListener('submit', function (e) {
+            //     e.preventDefault();
+            //     const query = document.getElementById('search-text');
+
+            //     fetch('/message_search', {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/x-www-form-urlencoded',
+            //         },
+            //         body: new URLSearchParams({
+            //             str_query: query.value
+            //         })
+            //     })
+            //     .then(response => response.json()) 
+            //     .then(data => {
+            //         if (data.filtered_users) {
+            //             let usersList = document.getElementById('userList'); 
+            //             usersList.innerHTML = '';
+            //             for (let i = 0; i < data.filtered_users.length; i++) {
+            //                 const user = data.filtered_users[i];
+
+            //                 let li = document.createElement('li');
+            //                 li.classList.add('clearfix');
+            //                 li.setAttribute('data-user-id', user.user_id);
+
+            //                 li.innerHTML = `
+            //                     <img src="${user.profile_picture}" alt="avatar">
+            //                     <div class="about">
+            //                         <div class="name">${user.first_name} ${user.last_name}</div>
+            //                     </div>
+            //                 `;
+
+            //                 usersList.appendChild(li);
+            //             }
+            //         }
+            //     })
+            //     .catch(error => console.error('Error searching user:', error));
+            // });
+            
+            // If not user is selected, select first one
+            if (isUserSelected === false) {
+                usersList[0].click();
+            }
+            
+        });
+
+        //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user
+        // Both can be used to load conversation then msgs of that conversation
+        function loadMessages(userId, textbookId) {
+            fetch(`/load_messages/${userId}/${textbookId}`)
+            .then(response => response.json())
+            .then(data => {
+                const chatHistory = document.getElementById('chat-history').querySelector('ul');
+                chatHistory.innerHTML = ''; 
+
+                data.messages.forEach(message => {
+                    appendMessageToChat(message);
+                });
+            })
+            .catch(error => console.error('Error fetching messages:', error));
+        }
+
+        //Sends post request to endpoint with body of msg and reeiever ID
+        function sendMessage(receiverId, messageText, textbookId) {
+            fetch('/direct_messaging', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    receiver_id: receiverId,
+                    text: messageText,
+                    textbook_id: textbookId
+                })
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                if (data.status === 'success') {
+                    appendMessageToChat(data.message); 
+                    document.getElementById('messageText').value = ''; 
+                } else {
+                    console.error('Message sending failed:', data.message);
+                }
+            })
+            .catch(error => console.error('Error sending message:', error));
+        }
+
+        // appends msg to chat of current convo
+        function appendMessageToChat(message) {
+            const chatHistory = document.getElementById('chat-history').querySelector('ul');
+            const messageElement = document.createElement('li');
+            messageElement.className = 'clearfix';
+
+            if (message.user_id === "{{ session['user']['user_id'] }}") {
+                messageElement.innerHTML = `
+                    <div class="message-data" style="display:flex;justify-content:flex-end; gap:.1rem">
+                        <div class="message other-message">${message.text}</div>
+                        <img src="${message.img}" alt="avatar">
+                    </div>
+                `;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="message-data" style="display:flex;justify-content:flex-start; gap:.1rem">
+                        <img src="${message.img}" alt="avatar">
+                        <div class="message other-message">${message.text}</div>
+                    </div>
+                `;
+            }
+            chatHistory.appendChild(messageElement);
+        }
+    </script>
+{% endblock %}

@@ -3,7 +3,7 @@
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -211,6 +211,9 @@ def add_pfp():
 
     return render_template('profile.html')
 
+
+#comment for git video (Delete Later!!!)
+
 @app.route('/del_pfp', methods=['GET', 'POST'])
 def del_pfp():
     if 'user' not in session:
@@ -265,7 +268,6 @@ def book():
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
-
 
     return render_template('book.html', textbook = textbook)
 
@@ -455,6 +457,11 @@ def meetup():
         return redirect('/meetup')
     else:
         return render_template('index.html')
+    
+#temporary meetup page (specifically made to implement gmaps)
+@app.get('/meetup')
+def meetup_page():
+        return render_template('meetup.html')
 
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
@@ -516,6 +523,143 @@ def checkout():
     except Exception as e:
         flash('Error. Transaction failed', category="error")
         return redirect('/')
+
+# This is the get endpoint when user visits the DM's page
+@app.get('/direct_messaging')
+def get_dms_page():
+    if 'user' not in session:
+        flash("Must be logged in to access DM's page", category="error")
+        return redirect('/login')
+    
+    user_id = session['user']['user_id']
+    # seller ID if passed as a query parameter, would be a parameter if user buys a book for pickup then they
+    # would be redirected to DM's page with seller selected to chat with
+    seller_id = request.args.get('seller_id')
+    textbook_id = request.args.get('textbook_id')
+    
+    # get all users conversations. Filters can be confusing but we want all convos where user has sent a msg or 
+    # rceieved one hence user id for both filter 
+    conversations = Conversations.query.filter(
+        (Conversations.sender_user_id == user_id) |
+        (Conversations.receiver_user_id == user_id)
+    ).all()
+
+    selected_conversation = None
+    # If a user came from purchasing a book, check if they have an exsisting conversation
+    # We want to create a convo if doesnt exist between seller and buyer and the textbook_id
+    if seller_id and str(seller_id) != str(user_id):  
+        selected_conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == user_id) & (Conversations.receiver_user_id == seller_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == user_id) & (Conversations.sender_user_id == seller_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
+        ).first()
+
+        print(selected_conversation)
+
+        # If it doesn't exist, create it as new convo and append one
+        if not selected_conversation and textbook_id:
+            selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id, textbook_id=textbook_id)
+            db.session.add(selected_conversation)
+            db.session.commit()
+            conversations.append(selected_conversation)
+
+    return render_template('direct_messaging.html', conversations=conversations, selected_conversation=selected_conversation)
+
+@app.post('/direct_messaging')
+def append_message():
+    message = request.form.get('text')
+    receiver_id = request.form.get('receiver_id')
+    textbook_id = request.form.get('textbook_id')
+    current_conversation = Conversations.query.filter(
+        ((Conversations.sender_user_id == session['user']['user_id']) & (Conversations.receiver_user_id == receiver_id)) |
+        ((Conversations.receiver_user_id == session['user']['user_id']) & (Conversations.sender_user_id == receiver_id))
+    ).first()
+
+    current_conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == session['user']['user_id']) & (Conversations.receiver_user_id == receiver_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == session['user']['user_id']) & (Conversations.sender_user_id == receiver_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
+        ).first()
+
+    if message and current_conversation:
+        msg = Messages(session['user']['user_id'], current_conversation.conversation_id, message)
+        db.session.add(msg)
+        db.session.commit()
+
+        user = users.query.filter(users.user_id == msg.user_id).first()
+        message_data = {
+            "user_id": msg.user_id,
+            "text": msg.message_text,
+            "created_at": msg.created_at,
+            "img": user.profile_picture if user else ""
+        }
+        return jsonify({'status': 'success', 'message': message_data})
+
+    return jsonify({'status': 'error', 'message': 'Message not sent'})
+
+# This is the get endpoint used for the ajax calls just to get the messages so page isnt reloaded
+@app.get('/load_messages/<user_id>/<textbook_id>')
+def load_messages(user_id, textbook_id):
+    current_user_id = session['user']['user_id']
+    # conversation = Conversations.query.filter(
+    #     (Conversations.sender_user_id == current_user_id) & 
+    #     (Conversations.receiver_user_id == user_id) |
+    #     (Conversations.receiver_user_id == current_user_id) & 
+    #     (Conversations.sender_user_id == user_id) 
+    # ).first()
+
+    conversation = Conversations.query.join(Textbook, Conversations.textbook_id == Textbook.textbook_id).filter(
+            (
+                (Conversations.sender_user_id == current_user_id) & (Conversations.receiver_user_id == user_id)
+            ) |
+            (
+                (Conversations.receiver_user_id == current_user_id) & (Conversations.sender_user_id == user_id)
+            )
+        ).filter(
+            Textbook.textbook_id == textbook_id
+        ).first()
+
+    if conversation:
+        messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
+        messages_data = []
+        for msg in messages:
+            user = users.query.filter(users.user_id == msg.user_id).first()
+            messages_data.append({
+                "user_id": msg.user_id, 
+                "text": msg.message_text, 
+                "created_at": msg.created_at,
+                "img": user.profile_picture if user else ""
+            })
+        return jsonify({"messages": messages_data})
+    return jsonify({"messages": []}) 
+
+# Endpoint for searching a user - will finish later
+# @app.post('/message_search')
+# def search_users():
+#     str_query = request.form.get('str_query', '').lower()
+#     filtered_users = None
+#     selected_conversation = None
+#     if str_query:
+#         filtered_users = users.query.filter(
+#             or_(
+#                 users.first_name.ilike(f'%{str_query}%'),
+#                 users.last_name.ilike(f'%{str_query}%')
+#             )
+#         ).all()
+    
+#     return render_template('direct_messaging.html', conversations = filtered_users, selected_conversation = selected_conversation)
+#         return jsonify( {"filtered_users": [filtered_users]} )
+#     return jsonify( {"filtered_users": []} )
 
 if __name__ == '__main__':
     app.run(debug=True)
