@@ -597,8 +597,6 @@ def get_dms_page():
             Textbook.textbook_id == textbook_id
         ).first()
 
-        print(selected_conversation)
-
         # If it doesn't exist, create it as new convo and append one
         if not selected_conversation and textbook_id:
             selected_conversation = Conversations(sender_user_id = user_id, receiver_user_id = seller_id, textbook_id=textbook_id)
