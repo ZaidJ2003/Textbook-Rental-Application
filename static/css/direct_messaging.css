@@ -69,6 +69,7 @@ footer {
     top: 0;
     padding: 20px;
     z-index: 7;
+    overflow: scroll;
 }
 
 /* .chat-app .chat {
