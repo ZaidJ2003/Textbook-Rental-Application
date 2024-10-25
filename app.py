@@ -67,7 +67,7 @@ def deleteAccount():
             db.session.delete(cart)
 
         conversations = Conversations.query.filter((Conversations.sender_user_id == user.user_id) |
-                                                   (Conversations.receiver_user_id == user.user_id)).all()
+                                                    (Conversations.receiver_user_id == user.user_id)).all()
         for conversation in conversations:
             Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
             db.session.delete(conversation)
