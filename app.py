@@ -50,10 +50,44 @@ def home():
         flash("Transaction successful!", category="success")
     return render_template('index.html')
 
+@app.get('/deleteAccount')
+def deleteAccount():
+    if 'user' not in session:
+        flash("You need to log in to access this page.", category='error')        
+        return redirect(url_for('login'))
+    
+    user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
+
+    if user:
+        user_repository_singleton.logout_user()
+
+        cart = Cart.query.filter_by(user_id=user.user_id).first()
+        if cart:
+            CartItem.query.filter_by(cart_id=cart.cart_id).delete()
+            db.session.delete(cart)
+
+        conversations = Conversations.query.filter((Conversations.sender_user_id == user.user_id) |
+                                                    (Conversations.receiver_user_id == user.user_id)).all()
+        for conversation in conversations:
+            Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
+            db.session.delete(conversation)
+        Textbook.query.filter_by(owners_user_id=user.user_id).delete()
+
+        db.session.delete(user)
+        db.session.commit()
+
+        session.clear()
+        flash("Your account and all associated data have been successfully deleted.", category='success')
+        return render_template('index.html')
+    else:
+        flash("User not found.", category='error')
+        return redirect(url_for('profile'))
+
+
 @app.get('/addDeleteTextbook')
 def addDeleteTextbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash("You need to log in to access this page.", category='error')        
         return redirect(url_for('login'))
     
     filtered_textbooks = db.session.query(Textbook).filter(                    #creates a list of textbooks the user owns/uploaded
@@ -137,18 +171,22 @@ def add_textbook():
 @app.get('/profile')
 def profile():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash("You need to log in to access this page.", category='error')
         return redirect(url_for('login'))
     
-    user = db.session.query(users).filter(                
-        or_(
-            users.user_id == session['user']['user_id']
-        )
-    ).first()
+    user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
 
-    image_url = user.profile_picture
+    filtered_textbooks = db.session.query(Textbook).filter(Textbook.owners_user_id == user.user_id).all()
 
-    return render_template('profile.html', image_url=image_url)
+    carts = db.session.query(Cart).filter(Cart.user_id == user.user_id).first()
+
+    if carts:
+        cart_textbooks = db.session.query(Textbook).join(CartItem, CartItem.textbook_id == Textbook.textbook_id).filter(CartItem.cart_id == carts.cart_id).all()
+    else:
+        cart_textbooks = []
+
+    return render_template('profile.html', user=user, filtered_textbooks=filtered_textbooks, cart_textbooks=cart_textbooks)
+
 
 #app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
 
