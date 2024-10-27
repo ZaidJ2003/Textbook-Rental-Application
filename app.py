@@ -521,13 +521,15 @@ def update_item_quantity(cart_id):
 # meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
 @app.get('/meetup/<uuid:conversation_id>/view')
 def meetup_page(conversation_id):
-    return render_template('meetup.html')
+    # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
+    # infrom user location has not been set yet by seller
+    return render_template('meetup_location.html')
 
 # meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
 @app.get('/meetup/<uuid:conversation_id>/edit')
 def get_location_form(conversation_id):
     # return template of form to set location page
-    return render_template('')
+    return render_template('meetup.html')
 
 # post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
 @app.post('/meetup/<uuid:conversation_id>')

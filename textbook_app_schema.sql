@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS conversations (
     sender_user_id UUID,
     receiver_user_id UUID,
     textbook_id UUID,
+    meetup_location VARCHAR(255),
     FOREIGN KEY (sender_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
