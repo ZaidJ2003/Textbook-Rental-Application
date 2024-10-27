@@ -1,6 +1,6 @@
 # To run, must create virtual env and activate it, then run flask run
 
-from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
+from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
 from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations
@@ -472,35 +472,6 @@ def delete_cart_item(cart_id):
 
     return redirect(f'/cart/{cart_id}')
 
-#temporary meetup page (specifically made to implement gmaps)
-@app.post('/meetup')
-def meetup():
-    if 'user_id' in session:
-        host_id = session['user_id']
-        meeting_name = request.form['meeting_name']
-        meeting_description = request.form['meeting_description']
-        start_time = request.form['start_time']
-        end_time = request.form['end_time']
-        user_address = request.form['user_address']
-        
-        geocode_result = gmaps.geocode(user_address)
-        meeting_address_pre = geocode_result[0]["place_id"]
-
-        rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
-        meeting_address = rev_geocode_result[0]["formatted_address"]
-        
-        if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
-            return 'Bad Request', 400
-        # More tests???????
-        return redirect('/meetup')
-    else:
-        return render_template('index.html')
-    
-#temporary meetup page (specifically made to implement gmaps)
-@app.get('/meetup')
-def meetup_page():
-        return render_template('meetup.html')
-
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
@@ -521,6 +492,48 @@ def update_item_quantity(cart_id):
     user_repository_singleton.update_cart_quantity()
     
     return redirect(f'/cart/{cart_id}')
+
+#temporary meetup page (specifically made to implement gmaps)
+# @app.post('/meetup')
+# def meetup():
+#     if 'user_id' in session:
+#         host_id = session['user_id']
+#         meeting_name = request.form['meeting_name']
+#         meeting_description = request.form['meeting_description']
+#         start_time = request.form['start_time']
+#         end_time = request.form['end_time']
+#         user_address = request.form['user_address']
+        
+#         geocode_result = gmaps.geocode(user_address)
+#         meeting_address_pre = geocode_result[0]["place_id"]
+
+#         rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
+#         meeting_address = rev_geocode_result[0]["formatted_address"]
+        
+#         if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
+#             return 'Bad Request', 400
+#         # More tests???????
+#         return redirect('/meetup')
+#     else:
+#         return render_template('index.html')
+    
+    
+# meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
+@app.get('/meetup/<uuid:conversation_id>/view')
+def meetup_page(conversation_id):
+    return render_template('meetup.html')
+
+# meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
+@app.get('/meetup/<uuid:conversation_id>/edit')
+def get_location_form(conversation_id):
+    # return template of form to set location page
+    return render_template('')
+
+# post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
+@app.post('/meetup/<uuid:conversation_id>')
+def send_location_form(conversation_id):
+    # process form results and query the conversation with conversation_id passed in to update conversation location
+    return render_template('')
 
 # To test checkout, reference STRIPE API TEST documentation or enter 
 # '4242 4242 4242 4242' as credit card 
