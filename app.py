@@ -11,6 +11,8 @@ from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 import stripe
 from flask import g
+from twilio.rest import Client
+
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
 # Flask Initialization
@@ -40,8 +42,24 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 #-------------------------Sets the allowed extensions for image uploads-------------------------
 
-#global test api key for Stripe
+# Global test api key for Stripe
 stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
+
+# Twilio (library for sending codes through phone) Credentials
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_PHONE_NUMBER = '+7048608101'
+
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Function that sends code vis SMS
+def send_code(phone_number, code):
+    message = client.messages.create(
+        body=f'Your code is : {code}',
+        from_= TWILIO_PHONE_NUMBER,
+        to=phone_number
+    )
+    return message.sid
 
 @app.get('/')
 def home():
