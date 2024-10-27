@@ -1,0 +1,245 @@
+/*zachary atkins start*/
+.search-search-bar {
+
+    width: 50%;
+    margin: 0 auto;
+    height: 75px;
+    background-color: #41aea9;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(4px) saturate(180%);
+}
+
+.search-search-bar input {
+    background: transparent;
+    flex: 1;
+    border: 0;
+    outline: none;
+    padding: 24px 20px;
+    font-size:20px;
+}
+
+.search-search-bar button img {
+    height: 50px;
+}
+
+.search-heading{
+    text-align: center;
+    padding: 20px;
+}
+
+
+.search-textbook-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.search-textbook {
+    display: flex;
+    align-items: center;
+    border: 2px solid #41aea9;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    justify-content: space-between;
+    width: 99%;
+}
+
+.search-textbook:hover {
+    filter: brightness(90%);
+}
+
+.search-textbook-image {
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.search-textbook-info {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.search-textbook-title {
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: left;
+}
+
+.search-textbook-description {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #666;
+    text-align: left;
+}
+
+.search-textbook-price {
+    text-align: right;
+    min-width: 100px;
+    margin-right:10px;
+}
+
+.search-textbook-price p {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+.book-container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.book-image img {
+    width: 300px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.book-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.book-title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.book-description {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.book-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.buy-options {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+.book-buy-button {
+    width: 100%;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #41aea9;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.book-buy-button:hover {
+    background-color: #319d95;
+}
+/*zachary atkins end*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 75px auto 50px;
+    grid-template-areas: 
+    "hd"
+    "main"
+    "ft";
+    margin: 0 0 var(--header-height) 0; 
+}
+
+header {
+    grid-area: hd;
+    background-color: #41aea9;
+    color: #005A91;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+    top:0;
+}
+
+main {
+    grid-area: main;
+}
+
+footer {
+    grid-area: ft;
+    background-color: #34495e;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    margin-top: auto;
+    bottom: 0;
+    width: 100%;
+    position: sticky;
+    bottom: 0;
+}
+
+.search-container {
+    width: 100%;
+    padding-top: 3%;
+    max-height: 230px;
+    background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0), url(static/images/search.png));
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 700px;
+    background-color: #41aea9;
+    display: flex;
+    align-items: center;
+    border-radius: 60px;
+    padding: 10px 20px;
+    backdrop-filter: blur(4px) saturate(180%);
+}
+
+.search-bar input {
+    background: transparent;
+    flex: 1;
+    border: 0;
+    outline: none;
+    padding: 24px 20px;
+    font-size:20px;
+}
+
+::placeholder {
+    color: #fff;
+}
+
+.search-bar button img {
+    height: 50px;
+}
+
+.close {
+    float: right;
+    width: 30px;
+}
