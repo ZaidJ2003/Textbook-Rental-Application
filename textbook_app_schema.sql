@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users(
-    user_id UUID DEFAULT uuid_generate_v4(),
+    user_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS users(
     phone_number VARCHAR(20) NOT NULL,
     registration_date TIMESTAMP,
     profile_picture VARCHAR(255),
-    PRIMARY KEY (user_id)
 );
 
 CREATE TABLE IF NOT EXISTS textbooks (
@@ -90,11 +89,24 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS unverified_users (
+    unverified_user_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    registration_date TIMESTAMP,
+    profile_picture VARCHAR(255)
+);
+
 CREATE TABLE IF NOT EXISTS verification_codes (
     code_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID NOT NULL,
     verification_code VARCHAR(255) NOT NULL,
     expiration_timestamp TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT FALSE, 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES unverified_users(unverified_user_id) ON DELETE CASCADE
 );
+

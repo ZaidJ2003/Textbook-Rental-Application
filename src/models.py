@@ -29,6 +29,27 @@ class users(db.Model, UserMixin):
                 self.profile_picture = profile_picture
                 self.phone_number = phone_number
 
+class UnverifiedUsers(db.Model):
+        __tablename__ = 'unverified_users'
+        unverified_user_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        first_name = db.Column(db.String(255), nullable=False)
+        last_name = db.Column(db.String(255), nullable=False)
+        email = db.Column(db.String(255), nullable=False, unique=True)
+        username = db.Column(db.String(255), nullable=False, unique=True)
+        password = db.Column(db.String(255), nullable=False)
+        registration_date = db.Column(db.DateTime, nullable=True, default=func.now())
+        profile_picture = db.Column(db.String(255), nullable=True)
+        phone_number = db.Column(db.String(20), nullable=False)
+
+        def __init__(self, first_name, last_name, email, phone_number, username, password, profile_picture):
+                self.first_name = first_name
+                self.last_name = last_name
+                self.email = email
+                self.username = username
+                self.password = password
+                self.profile_picture = profile_picture
+                self.phone_number = phone_number
+
 # Textbook table
 class Textbook(db.Model):
         __tablename__ = 'textbooks'

@@ -1,9 +1,9 @@
 # To run, must create virtual env and activate it, then run flask run
-
+import random
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -46,20 +46,40 @@ def allowed_file(filename):
 stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
 
 # Twilio (library for sending codes through phone) Credentials
-# TWILIO_ACCOUNT_SID = ''
-# TWILIO_AUTH_TOKEN = ''
-# TWILIO_PHONE_NUMBER = '+7048608101'
+TWILIO_ACCOUNT_SID = 'AC8040bd31dbca9bf5dfdadac60b3872ab'
+TWILIO_AUTH_TOKEN = '364085e68f48b5b0508f5125dd6a6e0c'
+TWILIO_PHONE_NUMBER = '+19546211760'
 
-# client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Function that sends code vis SMS
-# def send_code(phone_number, code):
-#     message = client.messages.create(
-#         body=f'Your code is : {code}',
-#         from_= TWILIO_PHONE_NUMBER,
-#         to=phone_number
-#     )
-#     return message.sid
+def send_code(phone_number, code):
+        message = client.messages.create(
+            body=f'Your code is: {code}',
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+        return message.sid
+
+def generate_and_send_code(user_id, phone_number):
+    current_user = UnverifiedUsers.query.filter(UnverifiedUsers.unverified_user_id == user_id).first()
+    print(current_user)
+    if current_user:
+        existing_codes = VerificationCodes.query.filter(VerificationCodes.user_id == user_id).all()
+        for code in existing_codes:
+            db.session.delete(code)
+        db.session.commit()
+
+        code = str(random.randint(100000, 999999))
+        verification_code = VerificationCodes(user_id, code) 
+        db.session.add(verification_code)
+        db.session.commit()
+
+        send_code(phone_number, code)
+
+        return verification_code.code_id
+    return None
+
 
 @app.get('/')
 def home():
@@ -409,17 +429,90 @@ def register_user():
         elif current_user.username.lower() == user_username.lower():
             flash('username already exists', category='error')
         return redirect('/register')
+
+    current_unverified_user = UnverifiedUsers.query.filter((func.lower(UnverifiedUsers.username) == user_username.lower()) | 
+    (func.lower(UnverifiedUsers.email) == user_email.lower())).first()
+
+    if current_unverified_user:
+        if current_unverified_user.email.lower() == user_email.lower():
+            flash('email already exists', category='error')
+        elif current_unverified_user.username.lower() == user_username.lower():
+            flash('username already exists', category='error')
+        return redirect('/register')
+    
     
     if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_phone_number, user_password):
-        new_user = users(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
-        db.session.add(new_user)
+        # new_user = users(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        # db.session.add(new_user)
+        # db.session.commit()
+        # user_repository_singleton.login_user(new_user)
+        new_unverified_user = UnverifiedUsers(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        db.session.add(new_unverified_user)
         db.session.commit()
-        user_repository_singleton.login_user(new_user)
-        flash('Account created successfully', category='success')
+        code_id = generate_and_send_code(new_unverified_user.unverified_user_id, user_phone_number)
+        if code_id is not None:
+            return redirect('verify_user/{code_id}')
+        else:
+            db.session.delete(new_unverified_user)
+            db.session.commit()
+            flash('Something went wrong. Please try again', category='error')
+            return redirect('/register')
+        # flash('Account created successfully', category='success')
     else:
         return redirect('/register')
 
-    return redirect('/')
+    # return redirect('/')
+
+@app.get('/verify_user/<uuid:code_id>')
+def verify_code(code_id):
+    return render_template('verify_code.html')
+
+@app.post('/verify_user/<uuid:code_id>')
+def verify_code_submission(code_id):
+    user_code = request.form.get('user-code')
+    
+    # Check if the verification code matches and belongs to the current user
+    original_code = VerificationCodes.query.filter(
+        VerificationCodes.code_id == code_id,
+        VerificationCodes.user_id == session['user']['user_id'],
+        VerificationCodes.verification_code == user_code
+    ).first()
+    
+    if original_code:
+        if func.now() < original_code.expiration_timestamp:
+            # Retrieve unverified user and create a verified user entry
+            unverified_user = UnverifiedUsers.query.filter_by(unverified_user_id=session['user']['user_id']).first()
+            
+            if unverified_user:
+                # Transfer unverified user data to a new user entry
+                new_user = users(
+                    first_name=unverified_user.first_name,
+                    last_name=unverified_user.last_name,
+                    email=unverified_user.email,
+                    phone_number=unverified_user.phone_number,
+                    username=unverified_user.username,
+                    password=unverified_user.password,
+                    profile_picture=unverified_user.profile_picture
+                )
+                
+                # Add and commit the new verified user, then delete unverified entry
+                db.session.add(new_user)
+                db.session.delete(unverified_user)
+                db.session.commit()
+                
+                # Log in the new user and redirect to the home page
+                user_repository_singleton.login_user(new_user)
+                flash('Account created successfully', category='success')
+                return redirect('/')
+            else:
+                flash('Something went wrong. User not found.', category='error')
+                return redirect(f'/verify_user/{code_id}')
+        else:
+            flash('Code has expired.', category='error')
+            return redirect('/register')
+    else:
+        flash('Invalid code', category='error')
+        return redirect(f'/verify_user/{code_id}')
 
 @app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):

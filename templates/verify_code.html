@@ -1,0 +1,40 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Login</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/register-login.css">
+    <div class="container main-container">
+        <div class="row two bg-body-tertiary">
+
+            <div class="col-md-6 container-left">
+                <!-- image added in CSS -->
+                <!-- <div class="text">
+                    <p>Almost There!, 
+                        <br>
+                        <i>stock whisperers</i>
+                    </p>
+                </div> --> 
+            </div>
+
+                <div class="col-md-6 container-right">
+                    <form action="/verify_user/{{ session['user']['user_id'] }}" method="post" class="login-form input-box">
+                            
+                            <div class="medium">
+                                <span>A code has been sent to your phone number. Please enter the code below to create your account.</span>
+                            </div>
+
+                            <div class="input-field mt-3">
+                                    <input type="text" class="input" name="user-code" id="user-code" class="form-control" required>
+                                    <label for="user-code">Code</label> 
+                            </div> 
+        
+                            <div class="input-field">
+                                <button type="submit" class="btn btn-login btn-block mb-4">Verify</button>
+                            </div> 
+                    </form> 
+                </div>
+
+        </div>
+    </div>
+{% endblock %}
