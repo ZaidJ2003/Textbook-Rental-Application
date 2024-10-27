@@ -66,6 +66,8 @@ class Conversations(db.Model):
         sender_user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
         receiver_user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
         textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        meetup_location = db.Column(db.String(255), nullable=True)
+
         messages = db.relationship('Messages', backref='conversation', lazy=True)
 
         sender = db.relationship('users', foreign_keys=[sender_user_id], backref='sent_conversations')
@@ -74,10 +76,11 @@ class Conversations(db.Model):
 
         textbook = db.relationship('Textbook', foreign_keys=[textbook_id])
 
-        def __init__(self, sender_user_id, receiver_user_id, textbook_id):
+        def __init__(self, sender_user_id, receiver_user_id, textbook_id, meetup_location=None):
                 self.sender_user_id = sender_user_id
                 self.receiver_user_id = receiver_user_id
                 self.textbook_id = textbook_id
+                self.meetup_location = meetup_location
 
 
 # Messages table
