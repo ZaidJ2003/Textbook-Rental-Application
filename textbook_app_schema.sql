@@ -55,14 +55,14 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS carts(
     cart_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID,
+    user_id UUID NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS cart_items (
     item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    cart_id UUID,
-    textbook_id UUID,
+    cart_id UUID NOT NULL,
+    textbook_id UUID NOT NULL,
     quantity INT,
     FOREIGN KEY (cart_id) REFERENCES carts(cart_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
@@ -70,9 +70,9 @@ CREATE TABLE IF NOT EXISTS cart_items (
 
 CREATE TABLE IF NOT EXISTS conversations (
     conversation_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    sender_user_id UUID,
-    receiver_user_id UUID,
-    textbook_id UUID,
+    sender_user_id UUID NOT NULL,
+    receiver_user_id UUID NOT NULL,
+    textbook_id UUID NOT NULL,
     meetup_location VARCHAR(255),
     FOREIGN KEY (sender_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
@@ -81,10 +81,19 @@ CREATE TABLE IF NOT EXISTS conversations (
 
 CREATE TABLE IF NOT EXISTS messages (
     message_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID,
-    conversation_id UUID,
+    user_id UUID NOT NULL,
+    conversation_id UUID, NOT NULL,
     message_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS verification_codes (
+    code_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL,
+    verification_code VARCHAR(255) NOT NULL,
+    expiration_timestamp TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE, 
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
