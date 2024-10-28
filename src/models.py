@@ -125,10 +125,11 @@ class VerificationCodes(db.Model):
         __tablename__ = 'verification_codes'
         code_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
         user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
-        verification_code = db.Column(db.String(255), default=lambda: datetime.utcnow() + timedelta(minutes=15))
-        expiration_timestamp = db.Column(db.DateTime, nullable=False, default=func.now())
+        verification_code = db.Column(db.String(255), nullable=False)
+        expiration_timestamp = db.Column(db.DateTime, nullable=False)
         is_used = db.Column(db.Boolean, default=False)
 
-        def __init__(self, user_id, verification_code):
+        def __init__(self, user_id, verification_code, expiration_date):
                 self.user_id = user_id
                 self.verification_code = verification_code
+                self.expiration_timestamp = expiration_date

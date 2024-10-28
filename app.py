@@ -12,6 +12,11 @@ import googlemaps
 import stripe
 from flask import g
 from twilio.rest import Client
+from flask_mail import Mail, Message
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import ssl
+from datetime import datetime, timedelta
 
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
@@ -45,25 +50,41 @@ def allowed_file(filename):
 # Global test api key for Stripe
 stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
 
-# Twilio (library for sending codes through phone) Credentials
+# Twilio (library for sending codes through phone) Credentials - Turned out to not be free so differing to email for now
 TWILIO_ACCOUNT_SID = 'AC8040bd31dbca9bf5dfdadac60b3872ab'
 TWILIO_AUTH_TOKEN = '364085e68f48b5b0508f5125dd6a6e0c'
 TWILIO_PHONE_NUMBER = '+19546211760'
-
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Function that sends code vis SMS
-def send_code(phone_number, code):
-        message = client.messages.create(
-            body=f'Your code is: {code}',
-            from_=TWILIO_PHONE_NUMBER,
-            to=phone_number
-        )
-        return message.sid
+# Email API Key (will hide when deployed) and disabling SSL verification as emails wont send with verification required on
+SENDGRID_API_KEY='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'
+ssl._create_default_https_context = ssl._create_unverified_context
 
-def generate_and_send_code(user_id, phone_number):
+def send_verification_email(email, code):
+    if not email:
+        abort(403) 
+    
+    message = Mail(
+        from_email='bookborrow763@gmail.com',
+        to_emails=email,
+        subject='BookBorrow registration code',
+        html_content=f'''
+        <p>Enter the 6-digit code below to verify your identity.</p>
+        <h3>{code}</h3>
+        <p>If you did not make this request, please ignore this email.</p>
+        '''
+    )
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        return True 
+    except Exception as e:
+        print(f'Error sending email: {e}')  
+        return False 
+
+def generate_and_send_code(user_id, email):
     current_user = UnverifiedUsers.query.filter(UnverifiedUsers.unverified_user_id == user_id).first()
-    print(current_user)
     if current_user:
         existing_codes = VerificationCodes.query.filter(VerificationCodes.user_id == user_id).all()
         for code in existing_codes:
@@ -71,15 +92,13 @@ def generate_and_send_code(user_id, phone_number):
         db.session.commit()
 
         code = str(random.randint(100000, 999999))
-        verification_code = VerificationCodes(user_id, code) 
+        verification_code = VerificationCodes(user_id, code, datetime.now() + timedelta(minutes=15)) 
         db.session.add(verification_code)
         db.session.commit()
 
-        send_code(phone_number, code)
-
-        return verification_code.code_id
+        if send_verification_email(email, code):
+            return verification_code.code_id
     return None
-
 
 @app.get('/')
 def home():
@@ -449,9 +468,9 @@ def register_user():
         new_unverified_user = UnverifiedUsers(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
         db.session.add(new_unverified_user)
         db.session.commit()
-        code_id = generate_and_send_code(new_unverified_user.unverified_user_id, user_phone_number)
-        if code_id is not None:
-            return redirect('verify_user/{code_id}')
+        code_id = generate_and_send_code(new_unverified_user.unverified_user_id, user_email)
+        if code_id:
+            return redirect(f'/verify_user/{code_id}')
         else:
             db.session.delete(new_unverified_user)
             db.session.commit()
@@ -465,7 +484,7 @@ def register_user():
 
 @app.get('/verify_user/<uuid:code_id>')
 def verify_code(code_id):
-    return render_template('verify_code.html')
+    return render_template('verify_code.html', code_id = code_id)
 
 @app.post('/verify_user/<uuid:code_id>')
 def verify_code_submission(code_id):
@@ -474,14 +493,13 @@ def verify_code_submission(code_id):
     # Check if the verification code matches and belongs to the current user
     original_code = VerificationCodes.query.filter(
         VerificationCodes.code_id == code_id,
-        VerificationCodes.user_id == session['user']['user_id'],
         VerificationCodes.verification_code == user_code
     ).first()
     
     if original_code:
-        if func.now() < original_code.expiration_timestamp:
+        if datetime.now() < original_code.expiration_timestamp:
             # Retrieve unverified user and create a verified user entry
-            unverified_user = UnverifiedUsers.query.filter_by(unverified_user_id=session['user']['user_id']).first()
+            unverified_user = UnverifiedUsers.query.filter_by(unverified_user_id=original_code.user_id).first()
             
             if unverified_user:
                 # Transfer unverified user data to a new user entry

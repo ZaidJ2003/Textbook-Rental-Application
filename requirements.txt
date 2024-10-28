@@ -11,6 +11,7 @@ click==8.1.7
 Flask==3.0.3
 Flask-Bcrypt==1.0.1
 Flask-Login==0.6.3
+Flask-Mail==0.10.0
 Flask-SQLAlchemy==3.1.1
 frozenlist==1.5.0
 googlemaps==4.10.0
@@ -23,8 +24,11 @@ propcache==0.2.0
 psycopg2-binary==2.9.9
 PyJWT==2.9.0
 python-dotenv==1.0.1
+python-http-client==3.3.7
 requests==2.32.3
+sendgrid==6.11.0
 SQLAlchemy==2.0.35
+starkbank-ecdsa==2.2.0
 stripe==11.1.0
 twilio==9.3.6
 typing_extensions==4.12.2
