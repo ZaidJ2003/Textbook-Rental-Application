@@ -12,7 +12,6 @@ import googlemaps
 import stripe
 from flask import g
 from twilio.rest import Client
-from flask_mail import Mail, Message
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import ssl
