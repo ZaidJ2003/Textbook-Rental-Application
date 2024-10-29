@@ -57,6 +57,7 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Email API Key (will hide when deployed) and disabling SSL verification as emails wont send with verification required on
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 def send_verification_email(email, code):
