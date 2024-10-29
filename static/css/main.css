@@ -20,6 +20,19 @@ body {
     "main"
     "ft";
     margin: 0 0 var(--header-height) 0; 
+    background: linear-gradient(270deg, #e0fbff, #24e2ff);
+    background-size: 400% 400%;
+    animation: gradientAnimation forwards 5s ease 1;
+
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
 }
 
 header {
@@ -50,7 +63,6 @@ footer {
     bottom: 0;
     width: 100%;
     position: sticky;
-    bottom: 0;
 }
 
 /* Search section */
