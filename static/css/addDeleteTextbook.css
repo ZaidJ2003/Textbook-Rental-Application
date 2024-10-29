@@ -179,6 +179,15 @@ main {
     grid-area: main;
 }
 
+.button1 {
+    padding: 5px 15px;
+    background-color: #79f7fa;
+    border: 0 none;
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
 footer {
     grid-area: ft;
     background-color: #34495e;
