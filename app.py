@@ -472,37 +472,6 @@ def delete_cart_item(cart_id):
 
     return redirect(f'/cart/{cart_id}')
 
-<<<<<<< Updated upstream
-=======
-#temporary meetup page (specifically made to implement gmaps)
-@app.post('/meetup')
-def meetup():
-    if 'user' in session:
-        meeting_id = session['meeting_id']
-        meeting_description = request.form['meeting_description']
-        start_time = request.form['start_time']
-        end_time = request.form['end_time']
-        user_address = request.form['user_address']
-        
-        geocode_result = gmaps.geocode(user_address)
-        meeting_address_pre = geocode_result[0]["place_id"]
-
-        rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
-        meeting_address = rev_geocode_result[0]["formatted_address"]
-        
-        if not meeting_id or not meeting_description or not start_time or not end_time:
-            return 'Bad Request', 400
-        # More tests???????
-        return redirect('/meetup')
-    else:
-        return render_template('index.html')
-    
-#temporary meetup page (specifically made to implement gmaps)
-@app.get('/meetup')
-def meetup_page():
-        return render_template('meetup.html')
-
->>>>>>> Stashed changes
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
