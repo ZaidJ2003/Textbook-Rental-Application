@@ -17,6 +17,9 @@
                             <input type="text" id="search-text" name="search-text" class="form-control" placeholder="Search...">
                         </form>
                     </div>
+
+
+
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
                             {% if conversation.sender_user_id == session['user']['user_id'] %}
@@ -50,10 +53,15 @@
                         <div class="row">
                             <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
                         </div>
+<<<<<<< Updated upstream
                         
                         <form id="meetupForm" class="meetup" method="get">
                             <input type="hidden" name="conversation_id" id="conversation_id">
                             <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
+=======
+                        <form action="/meetup" method="get">
+                            <button class="book-buy-button">MEETUP PICKUP LOCATION</button>
+>>>>>>> Stashed changes
                         </form>
                     </div>
 
