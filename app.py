@@ -435,8 +435,15 @@ def register_user():
     user_password = request.form.get('password')
     profile_picture = '/static/images/defaultPFP.png'
 
+        
+
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')
+        return redirect('/register')
+
+    # Check if email is UNCC domain
+    if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
+        flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
         return redirect('/register')
 
     current_user = users.query.filter((func.lower(users.username) == user_username.lower()) | 
