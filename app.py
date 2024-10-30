@@ -435,13 +435,11 @@ def register_user():
     user_password = request.form.get('password')
     profile_picture = '/static/images/defaultPFP.png'
 
-        
-
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')
         return redirect('/register')
 
-    # Check if email is UNCC domain
+    # Check if email contains UNCC domain
     if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
         flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
         return redirect('/register')
@@ -830,6 +828,72 @@ def load_messages(user_id, textbook_id):
             })
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
+
+@app.get('/request_password_reset')
+def get_password_request_page():
+    return render_template('request_password_reset.html')
+
+@app.post('/request_password_reset')
+def send_password_request():
+    user_email = request.form.get('email')
+
+    if not user_email:
+        flash('Please enter an email address.')
+        return redirect('/request_password_reset')
+    
+    actual_email = users.query.filter_by(email = user_email).first()
+    if not actual_email:
+        flash('Account with entered email does not exist.')
+        return redirect('/request_password_reset')
+
+    # create UUId
+    password_reset_code = None
+
+    message = Mail(
+        from_email='bookborrow763@gmail.com',
+        to_emails=actual_email,
+        subject='BookBorrow Reset Password Link',
+        html_content=f'''
+        <p>Click the link below to reset you password</p>
+        <h3>{password_reset_code}</h3>
+        <p>If you did not make this request, please ignore this email.</p>
+        '''
+    )
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        flash('Email Successfully sent. Follow the instructions to reset your email')
+    except Exception as e:
+        flash('Something went wrong. Please try again later', category='error')
+
+    return redirect('/request_password_reset')
+    
+@app.get('reset_password/<uuid:reset_password_id>')
+def get_reset_password_page(reset_password_id):
+    return render_template('reset_password.html')
+
+@app.post('reset_password/<uuid:reset_password_id>')
+def reset_password(reset_password_id):
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm-password')
+
+    if not password or not confirm_password:
+        flash('Please fill out all fields', category='error')
+        return redirect('/reset_password')
+    if password != confirm_password:
+        flash('Passwords do not match', category='error')
+        return redirect('/reset_password')
+    
+    current_user = users.query.filter_by().first()
+    if not current_user:
+        abort(404)
+
+    current_user.password = bcrypt.generate_password_hash(password)
+    db.session.commit()
+    flash('Password reset successfully!', category='success')
+    return redirect('/login')
+    
 
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')

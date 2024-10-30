@@ -61,6 +61,8 @@ class Textbook(db.Model):
         price = db.Column(db.Numeric(10, 2), nullable=False)
         created_at = db.Column(db.DateTime, default=func.now())
 
+        owner = db.relationship('users', foreign_keys=[owners_user_id], backref='textbooks')
+
 # Cart table
 class Cart(db.Model):
         __tablename__ = 'carts'

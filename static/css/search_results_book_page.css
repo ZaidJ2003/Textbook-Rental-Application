@@ -243,3 +243,34 @@ footer {
     float: right;
     width: 30px;
 }
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-img-top {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin: 0 auto; 
+    display: block;
+}
+
+.card {
+    background-color: #f7f7f7; 
+    border: 1px solid #41aea9; 
+    width: 35rem;
+}
+
+.card-title {
+    color: #005A91; 
+}
+
+.card-text {
+    color: #34495e; 
+}
+
