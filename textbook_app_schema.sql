@@ -19,13 +19,15 @@ CREATE TABLE IF NOT EXISTS textbooks (
     description TEXT NOT NULL,
     image_url VARCHAR(255),
     price NUMERIC(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owners_user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
---Added user to be the owner of all AI generated Textbooks
-INSERT INTO users (first_name, last_name, email, username, password, registration_date)
-VALUES
-('Temp', 'Test', 'Test@example.com', 'username', 'password', CURRENT_TIMESTAMP);
+-- Added user to be the owner of all AI-generated Textbooks
+INSERT INTO users (first_name, last_name, email, username, password, phone_number)
+VALUES ('Temp', 'Test', 'Test@example.com', 'username', 'password', '000-000-0000');
+
+
 
 INSERT INTO textbooks (owners_user_id, title, description, image_url, price)
 VALUES
@@ -86,7 +88,7 @@ CREATE TABLE IF NOT EXISTS messages (
     message_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)ON DELETE CASCADE
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS unverified_users (
