@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users(
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     registration_date TIMESTAMP,
-    profile_picture VARCHAR(255),
+    profile_picture VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS textbooks (
