@@ -3,21 +3,25 @@
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/addDeleteTextbook.css">
-<h2>Add a New Textbook</h2>
-<form action="{{ url_for('add_textbook') }}" method="POST" enctype="multipart/form-data">
-    <label for="title">Title:</label>
-    <input type="text" id="title" name="title" required>
-    
-    <label for="description">Description:</label>
-    <textarea id="description" name="description" required></textarea>
-    
-    <input type="file" name="image" accept="image/png, image/jpeg, image/jpg">
-    
-    <label for="price">Price:</label>
-    <input type="number" id="price" name="price" step="0.01" required>
-    
-    <button type="submit">Add Textbook</button>
-</form>
+<div class="wrapper">
+    <div class="fullbox index">
+            <h2>Add a New Textbook</h2>
+            <form action="{{ url_for('add_textbook') }}" method="POST" enctype="multipart/form-data">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+                
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea>
+                
+                <label for="img">Image:</label>
+                <input type="file" name="image" accept="image/png, image/jpeg, image/jpg">
+                
+                <label for="price">Price (USD):</label>
+                <input type="number" id="price" name="price" step="0.01" required>
+                <button class="button1" type="submit">Add Textbook</button>
+            </form>
+    </div>
+</div>
 <h2>Your Textbooks</h2>
 <p>Click textbook to delete</p>
 <div class="search-textbook-list">
