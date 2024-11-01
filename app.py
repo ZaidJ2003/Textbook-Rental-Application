@@ -246,7 +246,6 @@ def profile():
 
 
 #app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
-
 @app.before_request
 def before_request():
     if 'user' in session:
@@ -869,11 +868,11 @@ def send_password_request():
 
     return redirect('/request_password_reset')
     
-@app.get('reset_password/<uuid:reset_password_id>')
+@app.get('/reset_password/<uuid:reset_password_id>')
 def get_reset_password_page(reset_password_id):
     return render_template('reset_password.html')
 
-@app.post('reset_password/<uuid:reset_password_id>')
+@app.post('/reset_password/<uuid:reset_password_id>')
 def reset_password(reset_password_id):
     password = request.form.get('password')
     confirm_password = request.form.get('confirm-password')
