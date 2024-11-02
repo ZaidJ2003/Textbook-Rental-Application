@@ -20,21 +20,23 @@
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
                             {% if conversation.sender_user_id == session['user']['user_id'] %}
-                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
+                                <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
                                     <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
                                         <!-- <div class="text-small">| {{ conversation.textbook.title }}</div> -->
+                                        <input type="hidden" id="buyerOrSeller" value="buyer">
                                         <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
                                         <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
                                     </div>
                                 </li>
                             {% else %}
-                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}">
+                                <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
                                     <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
                                         <!-- <div class="text-small">{{ conversation.textbook.title }}</div> -->
+                                        <input type="hidden" id="buyerOrSeller" value="seller">
                                         <input type="hidden" id="textbook-{{ conversation.textbook.textbook_id }}" value="{{ conversation.textbook.title }}">
                                         <input type="hidden" id="image-{{ conversation.textbook.image_url }}" value="{{ conversation.textbook.image_url }}">
                                     </div>
@@ -48,10 +50,15 @@
                         <div class="row">
                             <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
                         </div>
+                        
+                        <form id="meetupForm" class="meetup" method="get">
+                            <input type="hidden" name="conversation_id" id="conversation_id">
+                            <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
+                        </form>
                     </div>
+
                     <div class="chat-history" id="chat-history">
                         <ul class="m-b-0"> <!-- content is loaded via JS --> </ul>
-                        
                     </div>
                     
                     <div class="chat-message clearfix">
@@ -80,6 +87,8 @@
             let usersList = document.getElementById('userList').children; 
             const receiver_id = document.getElementById('receiver_id');
             const textbook_id = document.getElementById('textbook_id');
+            const loggedInUser = "{{ session['user']['user_id'] }}";
+            const conversation_id = document.getElementById('conversation_id');
             const selectedConversationRecieverId = "{{ selected_conversation.receiver_user_id if selected_conversation else '' }}";
             const selectedConversationTextboodId = "{{ selected_conversation.textbook_id if selected_conversation else '' }}";
             let isUserSelected = false;
@@ -108,8 +117,26 @@
                             <div class="chat-about">
                                 <h3 class="m-b-0">${full_name} | ${textbook_title} </h3>
                             </div>`;
+
+                        const conversationId = usersList[i].getAttribute('conversation-id').trim();
+                        const form = document.getElementById('meetupForm');
+                        console.log(form);
+                        const typeOfUser = document.getElementById('buyerOrSeller');
+                        //need to find the logic to check if the user is sender or receiver of conversation and send the user accordingly
+                        //add hidden input receievr or sender 
+                        
+                        // seller of book -> send to page with form to set/edit location
+                        if (typeOfUser.value === 'seller') {
+                            form.action = `/meetup/${conversationId}/edit`;
+                        }
+                        // buyer of book -> send to location page to view form
+                        else {
+                            form.action = `/meetup/${conversationId}/view`;
+                        }
+
                         receiver_id.value = userId;
                         textbook_id.value = textbookId;
+                        conversation_id.value = conversationId;
                         loadMessages(userId, textbookId); 
                         isUserSelected = true;
                     }
@@ -177,13 +204,15 @@
             //         }
             //     })
             //     .catch(error => console.error('Error searching user:', error));
-            // });
-            
+            // });          
+
             // If not user is selected, select first one
             if (isUserSelected === false) {
                 usersList[0].click();
             }
             
+
+
         });
 
         //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user

@@ -3,31 +3,39 @@
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/profile.css">
+
+{% if 'user' in session %} 
+<div class="profile-container">
+    <h1 class="mb-0 mt-2 text-center">Welcome back, {{user.first_name}}!</h1>
+</div>
+{% endif %} 
+
 <div class="profile-grid">
     <div class="profile-container">
         <h1>Your Cart</h1>
-        {% if cart_textbooks %}
-        <ul>
-            {% for textbook in cart_textbooks %}
-            <li>
-                <form action="{{ url_for('book') }}" method="GET">
-                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                    <button type="submit" class = "button">
-                        {{ textbook.title }} - ${{ textbook.price }}
-                    </button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-            <p>Your cart is empty.</p>
-        {% endif %}
+        <div class = "scrollable">
+            {% if cart_textbooks %}
+            <ul>
+                {% for textbook in cart_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>Your cart is empty.</p>
+            {% endif %}
+        </div>
         <button type="button" class = "button" onclick="window.location.href='/cart/{{ session['cart']['cart_id'] }}'">
             Go to Cart
         </button>
-
-
     </div>
+
     <div class="profile-container">
         <h1>Profile Picture</h1>
         <img src="{{ user.profile_picture }}" alt="Profile Picture">
@@ -41,28 +49,32 @@
             <button class = "button" type="submit">Delete profile picture</button>
         </form>
     </div>
+
     <div class="profile-container">
         <h1>Your Textbooks</h1>
-        {% if filtered_textbooks %}
-        <ul>
-            {% for textbook in filtered_textbooks %}
-            <li>
-                <form action="{{ url_for('book') }}" method="GET">
-                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                    <button type="submit" class = "button">
-                        {{ textbook.title }} - ${{ textbook.price }}
-                    </button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-            <p>You do not have any textbooks</p>
-        {% endif %}
+        <div class = "scrollable">
+            {% if filtered_textbooks %}
+            <ul>
+                {% for textbook in filtered_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>You do not have any textbooks</p>
+            {% endif %}
+        </div>
         <form action="{{ url_for('addDeleteTextbook') }}" method="GET">
             <button type="submit" class = "button">Manage Textbooks</button>
         </form>
     </div>
+
     <div class="profile-container">
         <form action="{{ url_for('profile') }}" method="GET">
             <button type="submit" class = "button">Update Password (doesn't work yet)</button>
@@ -71,9 +83,14 @@
             <button type="submit" class = "button">Change Email (doesn't work yet)</button>
         </form>
         <form action="{{ url_for('deleteAccount') }}" method="GET">
-            <button type="submit" class="red">Delete Account</button>
+            <button type="submit" class="red" onclick="return confirmDelete()">Delete Account</button>
         </form>
     </div>
 
 </div>
+<script>
+    function confirmDelete() {
+        return confirm("CLICKING OK WILL IMMEDIATELY DELETE YOUR ACCOUNT AND PERMENATLY ERASE ALL OF THE DATA ASSOCIATED WITH YOUR ACCOUNT");
+    }
+    </script>
 {% endblock %}

@@ -3,12 +3,15 @@ from flask import abort, flash, session
 
 class UserRepository:
     # check if a password meets all requirements
-    def validate_input(self, first_name, last_name, username, password):
+    def validate_input(self, first_name, last_name, username, phone_number, password):
         if len(first_name) <= 1:
             flash('First name must be greater than 1 character', category='error')
             return False
         elif len(last_name) <= 1:
             flash('Last name must be greater than 1 character', category='error')
+            return False
+        elif len(phone_number) != 10:
+            flash('Invalid Phone Number', category='error')
             return False
         elif len(username) < 4:
             flash('Username name must be at least 4 characters', category='error')
@@ -18,8 +21,8 @@ class UserRepository:
             return False
         return True
     
-    def add_user(self, first_name, last_name, username, email, password, profile_picture):
-        temp_user = users(first_name, last_name, username, email, password, profile_picture)
+    def add_user(self, first_name, last_name, username, email, phone_number, password, profile_picture):
+        temp_user = users(first_name, last_name, username, email, phone_number, password, profile_picture)
         db.session.add(temp_user)
         db.session.commit()
         
@@ -46,6 +49,7 @@ class UserRepository:
             'email' : user.email,
             'first_name' : user.first_name,
             'last_name' : user.last_name,
+            'phone_number' : user.phone_number,
             'profile_picture' : user.profile_picture
         }
 

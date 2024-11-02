@@ -3,6 +3,7 @@
 
 {% block body %}
 <link rel="stylesheet" href="/static/css/search_results_book_page.css">
+
 <div class="book-container">
     <div class="book-image">
         <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}">
@@ -45,4 +46,16 @@
         {% endif %}
     </div>
 </div>
+
+<!-- <div class="content">
+    <h1 class="mb-3">About The Owner</h1>
+    <div class="card">
+        <img class="card-img-top mt-2" src="/static/images/fake-pic.jpg" alt="Card image cap">
+        <p class="text-center">John</p>
+        <div class="card-body">
+        <h5 class="card-title text-center">Rating: ★★★★★</h5>
+        <p class="card-text text-center">"I absolutely love BookBorrow! As a college student on a budget, finding affordable textbooks has been a challenge, but this app has saved me so much money. Plus, I can quickly search for specific books, and the interface is super user-friendly. Highly recommended!"</p>
+        </div>
+    </div>
+</div> -->
 {% endblock %}

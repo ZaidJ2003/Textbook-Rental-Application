@@ -1,9 +1,9 @@
 # To run, must create virtual env and activate it, then run flask run
-
-from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints
+import random
+from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -11,6 +11,12 @@ from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 import stripe
 from flask import g
+from twilio.rest import Client
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import ssl
+from datetime import datetime, timedelta
+
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
 # Flask Initialization
@@ -40,8 +46,59 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 #-------------------------Sets the allowed extensions for image uploads-------------------------
 
-#global test api key for Stripe
+# Global test api key for Stripe
 stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
+
+# Twilio (library for sending codes through phone) Credentials - Turned out to not be free so differing to email for now
+TWILIO_ACCOUNT_SID = 'AC8040bd31dbca9bf5dfdadac60b3872ab'
+TWILIO_AUTH_TOKEN = '364085e68f48b5b0508f5125dd6a6e0c'
+TWILIO_PHONE_NUMBER = '+19546211760'
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Email API Key (will hide when deployed) and disabling SSL verification as emails wont send with verification required on
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
+def send_verification_email(email, code):
+    if not email:
+        abort(403) 
+    
+    message = Mail(
+        from_email='bookborrow763@gmail.com',
+        to_emails=email,
+        subject='BookBorrow registration code',
+        html_content=f'''
+        <p>Enter the 6-digit code below to verify your identity.</p>
+        <h3>{code}</h3>
+        <p>If you did not make this request, please ignore this email.</p>
+        '''
+    )
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        return True 
+    except Exception as e:
+        print(f'Error sending email: {e}')  
+        return False 
+
+def generate_and_send_code(user_id, email):
+    current_user = UnverifiedUsers.query.filter(UnverifiedUsers.unverified_user_id == user_id).first()
+    if current_user:
+        existing_codes = VerificationCodes.query.filter(VerificationCodes.user_id == user_id).all()
+        for code in existing_codes:
+            db.session.delete(code)
+        db.session.commit()
+
+        code = str(random.randint(100000, 999999))
+        verification_code = VerificationCodes(user_id, code, datetime.now() + timedelta(minutes=15)) 
+        db.session.add(verification_code)
+        db.session.commit()
+
+        if send_verification_email(email, code):
+            return verification_code.code_id
+    return None
 
 @app.get('/')
 def home():
@@ -68,9 +125,25 @@ def deleteAccount():
 
         conversations = Conversations.query.filter((Conversations.sender_user_id == user.user_id) |
                                                     (Conversations.receiver_user_id == user.user_id)).all()
-        for conversation in conversations:
-            Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
-            db.session.delete(conversation)
+        
+        if conversations:
+            for conversation in conversations:
+                Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
+                db.session.delete(conversation)
+
+        textbooks = Textbook.query.filter_by(owners_user_id = user.user_id).all()
+
+        for textbook in textbooks:
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], textbook.image_url.split('/')[-1])
+            if os.path.exists(image_path):           
+                os.remove(image_path)
+
+
+        if user.profile_picture != "/static/images/defaultPFP.png":
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture.split('/')[-1])
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
         Textbook.query.filter_by(owners_user_id=user.user_id).delete()
 
         db.session.delete(user)
@@ -189,7 +262,6 @@ def profile():
 
 
 #app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
-
 @app.before_request
 def before_request():
     if 'user' in session:
@@ -373,12 +445,18 @@ def register_user():
     user_first_name = request.form.get('first-name')
     user_last_name = request.form.get('last-name')
     user_email = request.form.get('email')
+    user_phone_number = request.form.get('phone-number')
     user_username = request.form.get('username')
     user_password = request.form.get('password')
     profile_picture = '/static/images/defaultPFP.png'
 
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')
+        return redirect('/register')
+
+    # Check if email contains UNCC domain
+    if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
+        flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
         return redirect('/register')
 
     current_user = users.query.filter((func.lower(users.username) == user_username.lower()) | 
@@ -390,17 +468,89 @@ def register_user():
         elif current_user.username.lower() == user_username.lower():
             flash('username already exists', category='error')
         return redirect('/register')
+
+    current_unverified_user = UnverifiedUsers.query.filter((func.lower(UnverifiedUsers.username) == user_username.lower()) | 
+    (func.lower(UnverifiedUsers.email) == user_email.lower())).first()
+
+    if current_unverified_user:
+        if current_unverified_user.email.lower() == user_email.lower():
+            flash('email already exists', category='error')
+        elif current_unverified_user.username.lower() == user_username.lower():
+            flash('username already exists', category='error')
+        return redirect('/register')
     
-    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_password):
-        new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
-        db.session.add(new_user)
+    
+    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_phone_number, user_password):
+        # new_user = users(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        # db.session.add(new_user)
+        # db.session.commit()
+        # user_repository_singleton.login_user(new_user)
+        new_unverified_user = UnverifiedUsers(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        db.session.add(new_unverified_user)
         db.session.commit()
-        user_repository_singleton.login_user(new_user)
-        flash('Account created successfully', category='success')
+        code_id = generate_and_send_code(new_unverified_user.unverified_user_id, user_email)
+        if code_id:
+            return redirect(f'/verify_user/{code_id}')
+        else:
+            db.session.delete(new_unverified_user)
+            db.session.commit()
+            flash('Something went wrong. Please try again', category='error')
+            return redirect('/register')
+        # flash('Account created successfully', category='success')
     else:
         return redirect('/register')
 
-    return redirect('/')
+    # return redirect('/')
+
+@app.get('/verify_user/<uuid:code_id>')
+def verify_code(code_id):
+    return render_template('verify_code.html', code_id = code_id)
+
+@app.post('/verify_user/<uuid:code_id>')
+def verify_code_submission(code_id):
+    user_code = request.form.get('user-code')
+    
+    # Check if the verification code matches and belongs to the current user
+    original_code = VerificationCodes.query.filter(
+        VerificationCodes.code_id == code_id,
+        VerificationCodes.verification_code == user_code
+    ).first()
+    
+    if original_code:
+        if datetime.now() < original_code.expiration_timestamp:
+            # Retrieve unverified user and create a verified user entry
+            unverified_user = UnverifiedUsers.query.filter_by(unverified_user_id=original_code.user_id).first()
+            
+            if unverified_user:
+                # Transfer unverified user data to a new user entry
+                new_user = users(
+                    first_name=unverified_user.first_name,
+                    last_name=unverified_user.last_name,
+                    email=unverified_user.email,
+                    phone_number=unverified_user.phone_number,
+                    username=unverified_user.username,
+                    password=unverified_user.password,
+                    profile_picture=unverified_user.profile_picture
+                )
+                
+                # Add and commit the new verified user, then delete unverified entry
+                db.session.add(new_user)
+                db.session.delete(unverified_user)
+                db.session.commit()
+                
+                # Log in the new user and redirect to the home page
+                user_repository_singleton.login_user(new_user)
+                flash('Account created successfully', category='success')
+                return redirect('/')
+            else:
+                flash('Something went wrong. User not found.', category='error')
+                return redirect(f'/verify_user/{code_id}')
+        else:
+            flash('Code has expired.', category='error')
+            return redirect('/register')
+    else:
+        flash('Invalid code', category='error')
+        return redirect(f'/verify_user/{code_id}')
 
 @app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):
@@ -472,35 +622,6 @@ def delete_cart_item(cart_id):
 
     return redirect(f'/cart/{cart_id}')
 
-#temporary meetup page (specifically made to implement gmaps)
-@app.post('/meetup')
-def meetup():
-    if 'user_id' in session:
-        host_id = session['user_id']
-        meeting_name = request.form['meeting_name']
-        meeting_description = request.form['meeting_description']
-        start_time = request.form['start_time']
-        end_time = request.form['end_time']
-        user_address = request.form['user_address']
-        
-        geocode_result = gmaps.geocode(user_address)
-        meeting_address_pre = geocode_result[0]["place_id"]
-
-        rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
-        meeting_address = rev_geocode_result[0]["formatted_address"]
-        
-        if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
-            return 'Bad Request', 400
-        # More tests???????
-        return redirect('/meetup')
-    else:
-        return render_template('index.html')
-    
-#temporary meetup page (specifically made to implement gmaps)
-@app.get('/meetup')
-def meetup_page():
-        return render_template('meetup.html')
-
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
@@ -521,6 +642,50 @@ def update_item_quantity(cart_id):
     user_repository_singleton.update_cart_quantity()
     
     return redirect(f'/cart/{cart_id}')
+
+#temporary meetup page (specifically made to implement gmaps)
+# @app.post('/meetup')
+# def meetup():
+#     if 'user_id' in session:
+#         host_id = session['user_id']
+#         meeting_name = request.form['meeting_name']
+#         meeting_description = request.form['meeting_description']
+#         start_time = request.form['start_time']
+#         end_time = request.form['end_time']
+#         user_address = request.form['user_address']
+        
+#         geocode_result = gmaps.geocode(user_address)
+#         meeting_address_pre = geocode_result[0]["place_id"]
+
+#         rev_geocode_result = gmaps.reverse_geocode(meeting_address_pre)
+#         meeting_address = rev_geocode_result[0]["formatted_address"]
+        
+#         if not host_id or not meeting_name or not meeting_description or not start_time or not end_time:
+#             return 'Bad Request', 400
+#         # More tests???????
+#         return redirect('/meetup')
+#     else:
+#         return render_template('index.html')
+    
+    
+# meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
+@app.get('/meetup/<uuid:conversation_id>/view')
+def meetup_page(conversation_id):
+    # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
+    # infrom user location has not been set yet by seller
+    return render_template('meetup_location.html')
+
+# meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
+@app.get('/meetup/<uuid:conversation_id>/edit')
+def get_location_form(conversation_id):
+    # return template of form to set location page
+    return render_template('meetup.html')
+
+# post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
+@app.post('/meetup/<uuid:conversation_id>')
+def send_location_form(conversation_id):
+    # process form results and query the conversation with conversation_id passed in to update conversation location
+    return render_template('')
 
 # To test checkout, reference STRIPE API TEST documentation or enter 
 # '4242 4242 4242 4242' as credit card 
@@ -596,8 +761,6 @@ def get_dms_page():
         ).filter(
             Textbook.textbook_id == textbook_id
         ).first()
-
-        print(selected_conversation)
 
         # If it doesn't exist, create it as new convo and append one
         if not selected_conversation and textbook_id:
@@ -680,6 +843,72 @@ def load_messages(user_id, textbook_id):
             })
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
+
+@app.get('/request_password_reset')
+def get_password_request_page():
+    return render_template('request_password_reset.html')
+
+@app.post('/request_password_reset')
+def send_password_request():
+    user_email = request.form.get('email')
+
+    if not user_email:
+        flash('Please enter an email address.')
+        return redirect('/request_password_reset')
+    
+    actual_email = users.query.filter_by(email = user_email).first()
+    if not actual_email:
+        flash('Account with entered email does not exist.')
+        return redirect('/request_password_reset')
+
+    # create UUId
+    password_reset_code = None
+
+    message = Mail(
+        from_email='bookborrow763@gmail.com',
+        to_emails=actual_email,
+        subject='BookBorrow Reset Password Link',
+        html_content=f'''
+        <p>Click the link below to reset you password</p>
+        <h3>{password_reset_code}</h3>
+        <p>If you did not make this request, please ignore this email.</p>
+        '''
+    )
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        flash('Email Successfully sent. Follow the instructions to reset your email')
+    except Exception as e:
+        flash('Something went wrong. Please try again later', category='error')
+
+    return redirect('/request_password_reset')
+    
+@app.get('/reset_password/<uuid:reset_password_id>')
+def get_reset_password_page(reset_password_id):
+    return render_template('reset_password.html')
+
+@app.post('/reset_password/<uuid:reset_password_id>')
+def reset_password(reset_password_id):
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm-password')
+
+    if not password or not confirm_password:
+        flash('Please fill out all fields', category='error')
+        return redirect('/reset_password')
+    if password != confirm_password:
+        flash('Passwords do not match', category='error')
+        return redirect('/reset_password')
+    
+    current_user = users.query.filter_by().first()
+    if not current_user:
+        abort(404)
+
+    current_user.password = bcrypt.generate_password_hash(password)
+    db.session.commit()
+    flash('Password reset successfully!', category='success')
+    return redirect('/login')
+    
 
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')
