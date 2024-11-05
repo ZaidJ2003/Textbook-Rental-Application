@@ -913,7 +913,6 @@ def reset_password(token):
     flash('Password reset successfully!', category='success')
     return redirect('/login')
     
-
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')
 # def search_users():
