@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
+from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from sqlalchemy.sql import func
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+import os
 
 db = SQLAlchemy()
 
@@ -28,6 +30,30 @@ class users(db.Model, UserMixin):
                 self.password = password
                 self.profile_picture = profile_picture
                 self.phone_number = phone_number
+        
+        def get_reset_token(self, expires_sec=900):
+                # must have app_secret key variable in env file
+                app_secret_key = os.getenv('APP_SECRET_KEY')
+                if app_secret_key:
+                        s = Serializer(app_secret_key)
+                        token = s.dumps({'user_id' : str(self.user_id)})
+                        if isinstance(token, bytes):
+                                token = token.decode()
+                        return token
+                return None
+        
+        @staticmethod
+        def verify_reset_token(token):
+                # must have app_secret key variable in env file
+                app_secret_key = os.getenv('APP_SECRET_KEY')
+                if app_secret_key:
+                        s = Serializer(app_secret_key)
+                        try:
+                                user_id = s.loads(token)['user_id']
+                        except:
+                                return None
+                        return users.query.get(user_id)
+                return None
 
 class UnverifiedUsers(db.Model):
         __tablename__ = 'unverified_users'

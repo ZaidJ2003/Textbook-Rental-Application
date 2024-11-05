@@ -1,5 +1,6 @@
 # To run, must create virtual env and activate it, then run flask run
 import random
+from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
@@ -830,6 +831,9 @@ def load_messages(user_id, textbook_id):
 
 @app.get('/request_password_reset')
 def get_password_request_page():
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
     return render_template('request_password_reset.html')
 
 @app.post('/request_password_reset')
@@ -837,43 +841,60 @@ def send_password_request():
     user_email = request.form.get('email')
 
     if not user_email:
-        flash('Please enter an email address.')
+        flash('Please enter an email address.', category='error')
         return redirect('/request_password_reset')
     
-    actual_email = users.query.filter_by(email = user_email).first()
-    if not actual_email:
-        flash('Account with entered email does not exist.')
+    actual_email_user = users.query.filter_by(email = user_email).first()
+    if not actual_email_user:
+        flash('Account with entered email does not exist.', category='error')
         return redirect('/request_password_reset')
 
-    # create UUId
-    password_reset_code = None
-
+    # password_reset_code = uuid4()
+    token = actual_email_user.get_reset_token()
+    if not token:
+        abort(403)
+    reset_url = url_for('get_reset_password_page', token=token, _external=True)
     message = Mail(
-        from_email='bookborrow763@gmail.com',
-        to_emails=actual_email,
-        subject='BookBorrow Reset Password Link',
-        html_content=f'''
-        <p>Click the link below to reset you password</p>
-        <h3>{password_reset_code}</h3>
+    from_email='bookborrow763@gmail.com',
+    to_emails=actual_email_user.email,
+    subject='BookBorrow Reset Password Link',
+    html_content=f"""
+        <p>Click the link below to reset your password:</p>
+        <a href="{reset_url}">Password Reset Link</a>
         <p>If you did not make this request, please ignore this email.</p>
-        '''
-    )
+    """
+    )   
     
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         sg.send(message)
-        flash('Email Successfully sent. Follow the instructions to reset your email')
+        flash('Email Successfully sent. Follow the instructions to reset your email', category='success')
+        return redirect('/login')
     except Exception as e:
         flash('Something went wrong. Please try again later', category='error')
-
-    return redirect('/request_password_reset')
+        return redirect('/request_password_reset')
     
-@app.get('/reset_password/<uuid:reset_password_id>')
-def get_reset_password_page(reset_password_id):
-    return render_template('reset_password.html')
+@app.get('/reset_password/<token>')
+def get_reset_password_page(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    return render_template('reset_password.html', token=token)
 
-@app.post('/reset_password/<uuid:reset_password_id>')
-def reset_password(reset_password_id):
+@app.post('/reset_password/<token>')
+def reset_password(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    
     password = request.form.get('password')
     confirm_password = request.form.get('confirm-password')
 
@@ -883,12 +904,11 @@ def reset_password(reset_password_id):
     if password != confirm_password:
         flash('Passwords do not match', category='error')
         return redirect('/reset_password')
-    
-    current_user = users.query.filter_by().first()
-    if not current_user:
-        abort(404)
+    if (len(password) < 6) or not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password) or any(char.isspace() for char in password):
+        flash('Password must contain at least 6 characters, a letter, a number, and no spaces', category='error')
+        return redirect(f'/password_reset/{token}')
 
-    current_user.password = bcrypt.generate_password_hash(password)
+    user.password = bcrypt.generate_password_hash(password).decode()
     db.session.commit()
     flash('Password reset successfully!', category='success')
     return redirect('/login')
