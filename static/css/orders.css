@@ -227,7 +227,7 @@ footer {
 
 .order-header {
     display: flex;
-    gap: 5rem;
+    gap: 3rem;
     background-color: rgba(128, 128, 128, 0.424);
     padding: 10px;
     align-items: center;
@@ -244,4 +244,16 @@ footer {
     width: auto;              
     display: inline-block;
 }
+
+/* .order-header-left {
+    display: flex;
+    justify-content: flex-start;
+    gap:2rem;
+}
+
+.order-header-right {
+    display: flex;
+    justify-content: flex-end;
+    width: auto;
+} */
 

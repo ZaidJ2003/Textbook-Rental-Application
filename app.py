@@ -845,6 +845,37 @@ def delete_conversation(conversation_id):
     flash('Conversation has been deleted', category='success')
     return redirect('/direct_messaging')
 
+@app.post('/conversation/<uuid:conversation_id>/confirm')
+def confirm_order(conversation_id):
+    if 'user' not in session:
+        abort(403)
+    
+    conversation = Conversations.query.filter_by(conversation_id=conversation_id).first()
+    if not conversation:
+        flash('Something went wrong', category='error')
+        return redirect('/direct_messaging')
+    
+    # Only the buyer (sender) can confirm the pickup
+    if conversation.sender_user_id != session['user']['user_id']:
+        flash('Only the buyer can confirm pickup', category='error')
+        return redirect('/direct_messaging')
+    
+    # Add order
+    new_order = Order(session['user']['user_id'], conversation.textbook.price, 'Complete')
+    order_item = OrderItem(new_order.order_id, conversation.textbook.textbook_id, 1)
+    db.session.add(new_order)
+    db.session.add(order_item)
+    
+    # Delete all messages related to the conversation and conversation
+    Messages.query.filter_by(conversation_id=conversation_id).delete()
+    db.session.delete(conversation) 
+    
+    db.session.commit()
+    
+    flash('Pickup has been confirmed. Please visit the orders page to rate your order', category='success')
+    return redirect('/direct_messaging')
+
+
 @app.get('/request_password_reset')
 def get_password_request_page():
     if 'user' in session:
@@ -941,7 +972,8 @@ def get_orders():
         orders[str(order.order_id)] = {
             'status': order.status,
             'orderItems': order_items,
-            'total_price' : order.price
+            'total_price' : order.price,
+            'order_date' : order.order_date.strftime("%m/%d/%Y")
         }
     return render_template('orders.html', orders = orders)
     

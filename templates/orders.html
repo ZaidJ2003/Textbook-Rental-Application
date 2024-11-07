@@ -24,10 +24,19 @@
             {% for order_id, order_details in orders.items() %}
                 <div class="order-container">
                     <div class="order-header mb-4">
-                        <h5>Order ID: {{order_id}}</h4>
-                        <h4>Status: {{order_details.status}}</h4>
-                        <h4>Total: ${{order_details.total_price}}</h4>
-                        <h4><button class="order-btn">Move Order to Completed</button></h4>
+                        <!-- <div class="order-header-left"> -->
+                            <h5>Order ID: {{order_id}}</h5>
+                            <h5>Status: {{order_details.status}}</h5>
+                            <h5>Total: ${{order_details.total_price}}</h5>
+                            <h5>Order Date: {{order_details.order_date}}</h5>
+                        <!-- </div> -->
+                        <!-- <div class="order-header-right"> -->
+                            {% if order_details.status == 'pending' or order_details.status == 'Pending' %}
+                                <h4><button class="order-btn">Move Order to Completed</button></h4>
+                            {% else %}
+                                <h4><button class="order-btn">Rate Seller</button></h4>
+                            {% endif %}
+                        <!-- </div> -->
                     </div>
                     {% for item in order_details.orderItems %}
                         <div class="order-product">
