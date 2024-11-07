@@ -198,7 +198,7 @@ def add_textbook():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #----------------------Gets the id of the newly added textbook and appends it to the end of the image filename---------------
             # if textbook id = 12 and filename = image.png then this will output image12.png--------------
@@ -276,7 +276,7 @@ def add_pfp():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
 
             #-----------sets filename to pfp_id-12.png assuming a png is uploaded and the current user's id is 12--------------
             filename = secure_filename(file.filename)
@@ -293,6 +293,9 @@ def add_pfp():
                     users.user_id == session['user']['user_id']
                 )
             ).first()
+
+            if not user:
+                abort(403)
 
             user.profile_picture = image_url
             db.session.commit()
@@ -680,7 +683,7 @@ def send_location_form(conversation_id):
 # Use any value you like for other form fields
 @app.post('/create-checkout-session')
 def checkout():
-    cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+    cart_items = CartItem.query.filter_by(cart_id = session['cart']['cart_id']).all()
     if cart_items is None:
         abort(404)
     line_items = []
@@ -817,7 +820,7 @@ def load_messages(user_id, textbook_id):
         ).first()
 
     if conversation:
-        messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
+        messages = Messages.query.filter_by(conversation_id = conversation.conversation_id).all()
         messages_data = []
         for msg in messages:
             user = users.query.filter(users.user_id == msg.user_id).first()
