@@ -1,0 +1,66 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Cart</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/orders.css">
+<div class="container">
+    <div class="row">
+        <h1 class="text-center mt-4">Your Orders</h1>
+        <!-- <hr>
+        <div class="cart-headers">
+            <div class="cart-headers-left">
+                <div>Product</div>
+            </div>
+            <div class="cart-headers-right">
+                <div class="p-2">Quantity</div>
+                <div class="p-2">Price</div>
+                <div class="p-2">Status</div>
+            </div>
+        </div> -->
+        <hr>
+        {% if orders|length != 0 %}
+        <section class="cart-items-container">
+            {% for order_id, order_details in orders.items() %}
+                <div class="order-container">
+                    <div class="order-header mb-4">
+                        <h5>Order ID: {{order_id}}</h4>
+                        <h4>Status: {{order_details.status}}</h4>
+                        <h4>Total: ${{order_details.total_price}}</h4>
+                        <h4><button class="order-btn">Move Order to Completed</button></h4>
+                    </div>
+                    {% for item in order_details.orderItems %}
+                        <div class="order-product">
+                            <img src="{{ item.textbook.image_url }}" alt="{{ item.textbook.title }}" class="search-textbook-image">
+                            <div class="search-textbook-info">
+                                <h2 class="search-textbook-title">{{ item.textbook.title }}</h2>
+                                <p class="search-textbook-description">{{ item.textbook.description }}</p>
+                                <p class="quantity"> Quantity: {{ item.quantity }} </p>
+                            </div>
+                            <div class="search-textbook-right">
+                                <h4><button class="order-btn ">Rate Textbook</button></h4>
+                            </div>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </section>
+        <!-- <h3 class="text-center"><a href="/search">Continue shopping before checking out</a></h2>
+        <section class="checkout">
+            <h1 class="text-center mt-2">Order Summary</h1>
+            <hr>
+            <h3>Orignial Price: ${{ total }}</h3>
+            <h3>Number of items: {{ session['cart']['quantity'] }}</h3>
+            <hr>
+            <h2>Total: ${{ final_price }}</h2>
+            <form action="/create-checkout-session" method="post">
+                <button type="submit" class="checkout-button mb-4 mt-4">Checkout</button>
+            </form>
+        </section> -->
+        {% else %}
+            <h2 class="mt-4">Your have not made any orders. Browse through our <a href="/search">books</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

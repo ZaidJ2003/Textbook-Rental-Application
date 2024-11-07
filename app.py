@@ -4,7 +4,7 @@ from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers, Order, OrderItem
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -104,8 +104,9 @@ def generate_and_send_code(user_id, email):
 @app.get('/')
 def home():
     if request.args.get('success') == "true":
+        user_repository_singleton.add_delivery_order()
         user_repository_singleton.clear_cart()
-        flash("Transaction successful!", category="success")
+        flash("Transaction successful! Order is out for delivery.", category="success")
     return render_template('index.html')
 
 @app.get('/deleteAccount')
@@ -912,6 +913,22 @@ def reset_password(token):
     db.session.commit()
     flash('Password reset successfully!', category='success')
     return redirect('/login')
+
+@app.get('/orders')
+def get_orders():
+    if 'user' not in session:
+        flash('Log in to view your orders', 'error')
+        return redirect('/')
+    orders = {}
+    user_orders = Order.query.filter_by(user_id = session['user']['user_id']).all()
+    for order in user_orders:
+        order_items = OrderItem.query.filter_by(order_id = order.order_id).all()
+        orders[str(order.order_id)] = {
+            'status': order.status,
+            'orderItems': order_items,
+            'total_price' : order.price
+        }
+    return render_template('orders.html', orders = orders)
     
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')

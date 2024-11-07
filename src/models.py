@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 import os
+from uuid import uuid4
 
 db = SQLAlchemy()
 
@@ -161,3 +162,36 @@ class VerificationCodes(db.Model):
                 self.user_id = user_id
                 self.verification_code = verification_code
                 self.expiration_timestamp = expiration_date
+
+# Order table
+class Order(db.Model):
+        __tablename__ = 'orders'
+        order_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+        status = db.Column(db.String(10), default='pending')
+        price = db.Column(db.Numeric(10, 2), nullable=False)
+        order_date = db.Column(db.DateTime, nullable=False, default=func.now())
+
+        orderItems = db.relationship('OrderItem', back_populates='order', lazy=True)
+
+        def __init__(self, user_id, price, status='pending', order_id = None):
+                self.order_id = order_id or uuid4()
+                self.user_id = user_id
+                self.status = status
+                self.price = price
+
+# Cart items table
+class OrderItem(db.Model):
+        __tablename__ = 'order_items'
+        item_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('orders.order_id'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        quantity = db.Column(db.Integer, nullable=False)
+
+        order = db.relationship('Order', back_populates='orderItems', lazy=True)
+        textbook = db.relationship('Textbook', foreign_keys=[textbook_id], lazy=True)
+
+        def __init__(self, order_id, textbook_id, quantity):
+                self.order_id = order_id
+                self.textbook_id = textbook_id
+                self.quantity = quantity

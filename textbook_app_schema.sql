@@ -118,11 +118,11 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(10) NOT NULL DEFAULT 'pending',
     price NUMERIC(10, 2) NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES unverified_users(unverified_user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
-    order_item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     order_id UUID NOT NULL,
     textbook_id UUID NOT NULL,
     quantity INT NOT NULL,
