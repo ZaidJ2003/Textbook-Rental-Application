@@ -1,0 +1,61 @@
+{% extends '_layout.html' %}
+{% block title %}Book Details{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/search_results_book_page.css">
+
+<div class="book-container">
+    <div class="book-image">
+        <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}">
+    </div>
+    <div class="book-details">
+        <h1 class="book-title">
+            {{ textbook.title }}
+            {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
+                (You own this book)
+            {% endif %}
+        </h1>
+        <p class="book-description">{{ textbook.description }}</p>
+        <p class="book-price">{{ textbook.price }}</p>
+
+        {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
+            <button class="book-buy-button" onclick="window.location.href='/addDeleteTextbook'">Manage Your Textbooks</button>
+        {% else %}
+            {% if 'user' in session %}
+            <div class="buy-options">
+                    <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                    </form>
+                    <form action="/direct_messaging" method="get">
+                        <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                    </form>
+            </div>
+            {% else %}
+            <div class="buy-options">
+                <form action="/login" method="get" class="buy-options">
+                    <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                </form>
+                <form action="/login" method="get" class="buy-options">
+                    <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                </form>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- <div class="content">
+    <h1 class="mb-3">About The Owner</h1>
+    <div class="card">
+        <img class="card-img-top mt-2" src="/static/images/fake-pic.jpg" alt="Card image cap">
+        <p class="text-center">John</p>
+        <div class="card-body">
+        <h5 class="card-title text-center">Rating: ★★★★★</h5>
+        <p class="card-text text-center">"I absolutely love BookBorrow! As a college student on a budget, finding affordable textbooks has been a challenge, but this app has saved me so much money. Plus, I can quickly search for specific books, and the interface is super user-friendly. Highly recommended!"</p>
+        </div>
+    </div>
+</div> -->
+{% endblock %}
