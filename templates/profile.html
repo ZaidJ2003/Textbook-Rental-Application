@@ -13,22 +13,24 @@
 <div class="profile-grid">
     <div class="profile-container">
         <h1>Your Cart</h1>
-        {% if cart_textbooks %}
-        <ul>
-            {% for textbook in cart_textbooks %}
-            <li>
-                <form action="{{ url_for('book') }}" method="GET">
-                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                    <button type="submit" class = "button">
-                        {{ textbook.title }} - ${{ textbook.price }}
-                    </button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-            <p>Your cart is empty.</p>
-        {% endif %}
+        <div class = "scrollable">
+            {% if cart_textbooks %}
+            <ul>
+                {% for textbook in cart_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>Your cart is empty.</p>
+            {% endif %}
+        </div>
         <button type="button" class = "button" onclick="window.location.href='/cart/{{ session['cart']['cart_id'] }}'">
             Go to Cart
         </button>
@@ -50,22 +52,24 @@
 
     <div class="profile-container">
         <h1>Your Textbooks</h1>
-        {% if filtered_textbooks %}
-        <ul>
-            {% for textbook in filtered_textbooks %}
-            <li>
-                <form action="{{ url_for('book') }}" method="GET">
-                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                    <button type="submit" class = "button">
-                        {{ textbook.title }} - ${{ textbook.price }}
-                    </button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-            <p>You do not have any textbooks</p>
-        {% endif %}
+        <div class = "scrollable">
+            {% if filtered_textbooks %}
+            <ul>
+                {% for textbook in filtered_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>You do not have any textbooks</p>
+            {% endif %}
+        </div>
         <form action="{{ url_for('addDeleteTextbook') }}" method="GET">
             <button type="submit" class = "button">Manage Textbooks</button>
         </form>

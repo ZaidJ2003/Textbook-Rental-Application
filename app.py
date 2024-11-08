@@ -127,9 +127,25 @@ def deleteAccount():
 
         conversations = Conversations.query.filter((Conversations.sender_user_id == user.user_id) |
                                                     (Conversations.receiver_user_id == user.user_id)).all()
-        for conversation in conversations:
-            Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
-            db.session.delete(conversation)
+        
+        if conversations:
+            for conversation in conversations:
+                Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
+                db.session.delete(conversation)
+
+        textbooks = Textbook.query.filter_by(owners_user_id = user.user_id).all()
+
+        for textbook in textbooks:
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], textbook.image_url.split('/')[-1])
+            if os.path.exists(image_path):           
+                os.remove(image_path)
+
+
+        if user.profile_picture != "/static/images/defaultPFP.png":
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture.split('/')[-1])
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
         Textbook.query.filter_by(owners_user_id=user.user_id).delete()
 
         db.session.delete(user)
