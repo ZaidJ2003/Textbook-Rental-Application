@@ -238,4 +238,37 @@ footer {
     outline: none;
 }
 
+.popup-delete {
+    width: 500px;
+    background: #ec7171;
+    border-radius: 6px;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.1);
+    text-align: center;
+    padding: 0 30px 30px;
+    color:#fff;
+    visibility: hidden;
+    transition: transform .4s, top .4s;
+}
+
+.open-popup{
+    visibility: visible;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.popup-delete img {
+    margin-top: -50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
+
+@media (max-width: 770px) {
+    .popup img {
+        display: none;
+    }
+}
+
 

@@ -50,11 +50,19 @@
                         <div class="row">
                             <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
                         </div>
-                        
                         <form id="meetupForm" class="meetup" method="get">
                             <input type="hidden" name="conversation_id" id="conversation_id">
                             <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
                         </form>
+
+                        <!-- <form id="deleteConvoForm" class="meetup" method="post">
+                            <input type="hidden" name="conversation_id" id="conversation_id">
+                            <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
+                        </form> -->
+
+                        <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
+
+                        <button id="confirm_pickup_button" class="btn btn-success" type="submit">Confirm Pickup</button>
                     </div>
 
                     <div class="chat-history" id="chat-history">
@@ -73,6 +81,33 @@
                             </form>                            
                         </div>
                     </div>
+
+                    <div class="popup-pickup" id="popup">
+                        <img src="/static/images/pickup.png" alt="">
+                        <h2>Have you picked up the order?</h2>
+                        <p>Confirming will end this conversation and move this order to complete</p>
+                        <div class="popup-buttons">
+                            <button type="submit" class="btn cancel-button mb-3" id="cancelButton">Cancel</button>
+                            <form id="confirmPickupForm" class="meetup" method="post">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button type="submit" class="btn confirm-button" id="confirmButton">Confirm</button>
+                            </form>
+                        </div>
+                    </div> 
+
+                    <div class="popup-delete alert alert-danger" id="delete-popup">
+                        <img src="/static/images/danger.webp" alt="">
+                        <h2>Warning!</h2>
+                        <p>Are you sure you want to delete this conversation?</p>
+                        <div class="popup-buttons">
+                            <button type="submit" class="btn btn-warning btn-block mb-3" id="cancel-delete-button">Cancel</button>
+                            <form id="confirmDeleteForm" class="meetup" method="post">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button type="submit" class="btn btn-warning btn-block" id="confirm-delete-button">Confirm</button>
+                            </form>
+                        </div>
+                    </div> 
+
                 </div>
             </div>
         </div>
@@ -119,20 +154,25 @@
                             </div>`;
 
                         const conversationId = usersList[i].getAttribute('conversation-id').trim();
-                        const form = document.getElementById('meetupForm');
-                        console.log(form);
+                        const meetupForm = document.getElementById('meetupForm');
                         const typeOfUser = document.getElementById('buyerOrSeller');
-                        //need to find the logic to check if the user is sender or receiver of conversation and send the user accordingly
-                        //add hidden input receievr or sender 
                         
                         // seller of book -> send to page with form to set/edit location
                         if (typeOfUser.value === 'seller') {
-                            form.action = `/meetup/${conversationId}/edit`;
+                            meetupForm.action = `/meetup/${conversationId}/edit`;
                         }
                         // buyer of book -> send to location page to view form
                         else {
-                            form.action = `/meetup/${conversationId}/view`;
+                            meetupForm.action = `/meetup/${conversationId}/view`;
                         }
+
+                        const confirmDeleteForm = document.getElementById('confirmDeleteForm');
+                        // Add popup to confirm deletion here
+                        confirmDeleteForm.action = `/conversation/${conversationId}/delete`;
+
+                        const confirmPickupForm = document.getElementById('confirmPickupForm');
+                        //Add popup for in depth explination to confrim
+                        confirmPickupForm.action = `/conversation/${conversationId}/confirm`;
 
                         receiver_id.value = userId;
                         textbook_id.value = textbookId;
@@ -211,8 +251,29 @@
                 usersList[0].click();
             }
             
+            let popup = document.getElementById('popup');
+            const first_button = document.getElementById('confirm_pickup_button');
+            first_button.addEventListener('click', openPopup);
+            const second_button = document.getElementById('cancelButton');
+            second_button.addEventListener('click', openPopup);
+            const third_button = document.getElementById('confirmButton');
+            third_button.addEventListener('click', openPopup);
 
+            let deletePopup = document.getElementById('delete-popup');
+            const deleteButton = document.getElementById('delete_convo_button');
+            deleteButton.addEventListener('click', openDeletePopup);
+            const cancelDeleteButton = document.getElementById('cancel-delete-button');
+            cancelDeleteButton.addEventListener('click', openDeletePopup);
+            const confirmDeleteButton = document.getElementById('confirm-delete-button');
+            confirmDeleteButton.addEventListener('click', openDeletePopup);
 
+            function openPopup() {
+                popup.classList.toggle("open-popup");
+            }   
+
+            function openDeletePopup() {
+                deletePopup.classList.toggle("open-delete-popup");
+            }   
         });
 
         //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user

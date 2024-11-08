@@ -75,22 +75,47 @@
         </form>
     </div>
 
-    <div class="profile-container">
-        <form action="{{ url_for('profile') }}" method="GET">
-            <button type="submit" class = "button">Update Password (doesn't work yet)</button>
-        </form>
-        <form action="{{ url_for('profile') }}" method="GET">
-            <button type="submit" class = "button">Change Email (doesn't work yet)</button>
-        </form>
-        <form action="{{ url_for('deleteAccount') }}" method="GET">
-            <button type="submit" class="red" onclick="return confirmDelete()">Delete Account</button>
-        </form>
-    </div>
+    {% if 'user' in session %}
+        <div class="profile-container">
+            <form action="{{ url_for('profile') }}" method="GET">
+                <button type="submit" class = "button">Update Password (doesn't work yet)</button>
+            </form>
+            <form action="{{ url_for('profile') }}" method="GET">
+                <button type="submit" class = "button">Change Email (doesn't work yet)</button>
+            </form>
+            <!-- Added popup to confirm deletion of account. Kept old implementation by Zach in case if we want to rever - Zaid J -->
+            <!-- <form action="{{ url_for('deleteAccount') }}" method="GET"> -->
+                <!-- <button type="submit" class="red">Delete Account</button> -->
+            <!-- </form> -->
+
+            <button type="submit" class="red" id="delButton">Delete Account</button>
+            <div class="popup-delete alert alert-danger" id="popup">
+                <img src="/static/images/danger.webp" alt="">
+                <h2>Warning!</h2>
+                <p>Are you sure you want to delete your account? All your saved data will be lost.</p>
+                <button type="submit" class="btn btn-warning btn-block mb-3" id="cancelButton">Cancel</button>
+                <form action="{{ url_for('deleteAccount') }}" method="GET">
+                    <button type="submit" class="btn btn-warning btn-block" id="confirmButton">Confirm</button>
+                </form>
+            </div>
+
+        </div>
+    {% endif %}
 
 </div>
+
 <script>
-    function confirmDelete() {
-        return confirm("CLICKING OK WILL IMMEDIATELY DELETE YOUR ACCOUNT AND PERMENATLY ERASE ALL OF THE DATA ASSOCIATED WITH YOUR ACCOUNT");
-    }
-    </script>
+    let popup = document.getElementById('popup');
+    const first_button = document.getElementById('delButton');
+    first_button.addEventListener('click', openPopup);
+    const second_button = document.getElementById('cancelButton');
+    second_button.addEventListener('click', openPopup);
+    const third_button = document.getElementById('confirmButton');
+    third_button.addEventListener('click', openPopup);
+
+    function openPopup() {
+        popup.classList.toggle("open-popup");
+    }   
+</script>
+
 {% endblock %}

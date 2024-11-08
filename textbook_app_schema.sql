@@ -112,3 +112,20 @@ CREATE TABLE IF NOT EXISTS verification_codes (
     FOREIGN KEY (user_id) REFERENCES unverified_users(unverified_user_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS orders (
+    order_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'pending',
+    price NUMERIC(10, 2) NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    order_id UUID NOT NULL,
+    textbook_id UUID NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
+);

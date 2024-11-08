@@ -1,9 +1,10 @@
 # To run, must create virtual env and activate it, then run flask run
 import random
+from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers, Order, OrderItem
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -103,8 +104,9 @@ def generate_and_send_code(user_id, email):
 @app.get('/')
 def home():
     if request.args.get('success') == "true":
+        user_repository_singleton.add_delivery_order()
         user_repository_singleton.clear_cart()
-        flash("Transaction successful!", category="success")
+        flash("Transaction successful! Order is out for delivery.", category="success")
     return render_template('index.html')
 
 @app.get('/deleteAccount')
@@ -212,7 +214,7 @@ def add_textbook():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #----------------------Gets the id of the newly added textbook and appends it to the end of the image filename---------------
             # if textbook id = 12 and filename = image.png then this will output image12.png--------------
@@ -290,7 +292,7 @@ def add_pfp():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
 
             #-----------sets filename to pfp_id-12.png assuming a png is uploaded and the current user's id is 12--------------
             filename = secure_filename(file.filename)
@@ -307,6 +309,9 @@ def add_pfp():
                     users.user_id == session['user']['user_id']
                 )
             ).first()
+
+            if not user:
+                abort(403)
 
             user.profile_picture = image_url
             db.session.commit()
@@ -694,7 +699,7 @@ def send_location_form(conversation_id):
 # Use any value you like for other form fields
 @app.post('/create-checkout-session')
 def checkout():
-    cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+    cart_items = CartItem.query.filter_by(cart_id = session['cart']['cart_id']).all()
     if cart_items is None:
         abort(404)
     line_items = []
@@ -831,7 +836,7 @@ def load_messages(user_id, textbook_id):
         ).first()
 
     if conversation:
-        messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
+        messages = Messages.query.filter_by(conversation_id = conversation.conversation_id).all()
         messages_data = []
         for msg in messages:
             user = users.query.filter(users.user_id == msg.user_id).first()
@@ -844,8 +849,54 @@ def load_messages(user_id, textbook_id):
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
 
+@app.post('/conversation/<uuid:conversation_id>/delete')
+def delete_conversation(conversation_id):
+    # Delete all messages of conversation and conversation
+    messages = Messages.query.filter_by(conversation_id = conversation_id).delete()
+    conversation = Conversations.query.filter_by(conversation_id = conversation_id).delete()
+    if not conversation:
+        flash('Something went wrong', category='error')
+        return redirect('/direct_messaging')
+    db.session.commit()
+    flash('Conversation has been deleted', category='success')
+    return redirect('/direct_messaging')
+
+@app.post('/conversation/<uuid:conversation_id>/confirm')
+def confirm_order(conversation_id):
+    if 'user' not in session:
+        abort(403)
+    
+    conversation = Conversations.query.filter_by(conversation_id=conversation_id).first()
+    if not conversation:
+        flash('Something went wrong', category='error')
+        return redirect('/direct_messaging')
+    
+    # Only the buyer (sender) can confirm the pickup
+    if conversation.sender_user_id != session['user']['user_id']:
+        flash('Only the buyer can confirm pickup', category='error')
+        return redirect('/direct_messaging')
+    
+    # Add order
+    new_order = Order(session['user']['user_id'], conversation.textbook.price, 'Complete')
+    order_item = OrderItem(new_order.order_id, conversation.textbook.textbook_id, 1)
+    db.session.add(new_order)
+    db.session.add(order_item)
+    
+    # Delete all messages related to the conversation and conversation
+    Messages.query.filter_by(conversation_id=conversation_id).delete()
+    db.session.delete(conversation) 
+    
+    db.session.commit()
+    
+    flash('Pickup has been confirmed. Please visit the orders page to rate your order', category='success')
+    return redirect('/direct_messaging')
+
+
 @app.get('/request_password_reset')
 def get_password_request_page():
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
     return render_template('request_password_reset.html')
 
 @app.post('/request_password_reset')
@@ -853,43 +904,60 @@ def send_password_request():
     user_email = request.form.get('email')
 
     if not user_email:
-        flash('Please enter an email address.')
+        flash('Please enter an email address.', category='error')
         return redirect('/request_password_reset')
     
-    actual_email = users.query.filter_by(email = user_email).first()
-    if not actual_email:
-        flash('Account with entered email does not exist.')
+    actual_email_user = users.query.filter_by(email = user_email).first()
+    if not actual_email_user:
+        flash('Account with entered email does not exist.', category='error')
         return redirect('/request_password_reset')
 
-    # create UUId
-    password_reset_code = None
-
+    # password_reset_code = uuid4()
+    token = actual_email_user.get_reset_token()
+    if not token:
+        abort(403)
+    reset_url = url_for('get_reset_password_page', token=token, _external=True)
     message = Mail(
-        from_email='bookborrow763@gmail.com',
-        to_emails=actual_email,
-        subject='BookBorrow Reset Password Link',
-        html_content=f'''
-        <p>Click the link below to reset you password</p>
-        <h3>{password_reset_code}</h3>
+    from_email='bookborrow763@gmail.com',
+    to_emails=actual_email_user.email,
+    subject='BookBorrow Reset Password Link',
+    html_content=f"""
+        <p>Click the link below to reset your password:</p>
+        <a href="{reset_url}">Password Reset Link</a>
         <p>If you did not make this request, please ignore this email.</p>
-        '''
-    )
+    """
+    )   
     
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         sg.send(message)
-        flash('Email Successfully sent. Follow the instructions to reset your email')
+        flash('Email Successfully sent. Follow the instructions to reset your email', category='success')
+        return redirect('/login')
     except Exception as e:
         flash('Something went wrong. Please try again later', category='error')
-
-    return redirect('/request_password_reset')
+        return redirect('/request_password_reset')
     
-@app.get('/reset_password/<uuid:reset_password_id>')
-def get_reset_password_page(reset_password_id):
-    return render_template('reset_password.html')
+@app.get('/reset_password/<token>')
+def get_reset_password_page(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    return render_template('reset_password.html', token=token)
 
-@app.post('/reset_password/<uuid:reset_password_id>')
-def reset_password(reset_password_id):
+@app.post('/reset_password/<token>')
+def reset_password(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    
     password = request.form.get('password')
     confirm_password = request.form.get('confirm-password')
 
@@ -899,17 +967,32 @@ def reset_password(reset_password_id):
     if password != confirm_password:
         flash('Passwords do not match', category='error')
         return redirect('/reset_password')
-    
-    current_user = users.query.filter_by().first()
-    if not current_user:
-        abort(404)
+    if (len(password) < 6) or not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password) or any(char.isspace() for char in password):
+        flash('Password must contain at least 6 characters, a letter, a number, and no spaces', category='error')
+        return redirect(f'/password_reset/{token}')
 
-    current_user.password = bcrypt.generate_password_hash(password)
+    user.password = bcrypt.generate_password_hash(password).decode()
     db.session.commit()
     flash('Password reset successfully!', category='success')
     return redirect('/login')
-    
 
+@app.get('/orders')
+def get_orders():
+    if 'user' not in session:
+        flash('Log in to view your orders', 'error')
+        return redirect('/')
+    orders = {}
+    user_orders = Order.query.filter_by(user_id = session['user']['user_id']).all()
+    for order in user_orders:
+        order_items = OrderItem.query.filter_by(order_id = order.order_id).all()
+        orders[str(order.order_id)] = {
+            'status': order.status,
+            'orderItems': order_items,
+            'total_price' : order.price,
+            'order_date' : order.order_date.strftime("%m/%d/%Y")
+        }
+    return render_template('orders.html', orders = orders)
+    
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')
 # def search_users():
