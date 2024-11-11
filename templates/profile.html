@@ -1,0 +1,121 @@
+{% extends '_layout.html' %}
+{% block title %}Profile Page{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/profile.css">
+
+{% if 'user' in session %} 
+<div class="profile-container">
+    <h1 class="mb-0 mt-2 text-center">Welcome back, {{user.first_name}}!</h1>
+</div>
+{% endif %} 
+
+<div class="profile-grid">
+    <div class="profile-container">
+        <h1>Your Cart</h1>
+        <div class = "scrollable">
+            {% if cart_textbooks %}
+            <ul>
+                {% for textbook in cart_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>Your cart is empty.</p>
+            {% endif %}
+        </div>
+        <button type="button" class = "button" onclick="window.location.href='/cart/{{ session['cart']['cart_id'] }}'">
+            Go to Cart
+        </button>
+    </div>
+
+    <div class="profile-container">
+        <h1>Profile Picture</h1>
+        <img src="{{ user.profile_picture }}" alt="Profile Picture">
+        <form action="{{ url_for('add_pfp') }}" method="POST" enctype="multipart/form-data" id="profilePicForm">
+            <label for="image">Image:</label>
+            <input type="file" name="image" accept="image/png, image/jpeg, image/jpg" onchange="this.form.submit()">
+            <button type="submit" class = "button" style="display:none;"></button>
+        </form>
+
+        <form action="{{ url_for('del_pfp') }}" method="POST" enctype="multipart/form-data">
+            <button class = "button" type="submit">Delete profile picture</button>
+        </form>
+    </div>
+
+    <div class="profile-container">
+        <h1>Your Textbooks</h1>
+        <div class = "scrollable">
+            {% if filtered_textbooks %}
+            <ul>
+                {% for textbook in filtered_textbooks %}
+                <li>
+                    <form action="{{ url_for('book') }}" method="GET">
+                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                        <button type="submit" class = "item">
+                            {{ textbook.title }} - ${{ textbook.price }}
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>You do not have any textbooks</p>
+            {% endif %}
+        </div>
+        <form action="{{ url_for('addDeleteTextbook') }}" method="GET">
+            <button type="submit" class = "button">Manage Textbooks</button>
+        </form>
+    </div>
+
+    {% if 'user' in session %}
+        <div class="profile-container">
+            <form action="{{ url_for('profile') }}" method="GET">
+                <button type="submit" class = "button">Update Password (doesn't work yet)</button>
+            </form>
+            <form action="{{ url_for('profile') }}" method="GET">
+                <button type="submit" class = "button">Change Email (doesn't work yet)</button>
+            </form>
+            <!-- Added popup to confirm deletion of account. Kept old implementation by Zach in case if we want to rever - Zaid J -->
+            <!-- <form action="{{ url_for('deleteAccount') }}" method="GET"> -->
+                <!-- <button type="submit" class="red">Delete Account</button> -->
+            <!-- </form> -->
+
+            <button type="submit" class="red" id="delButton">Delete Account</button>
+            <div class="popup-delete alert alert-danger" id="popup">
+                <img src="/static/images/danger.webp" alt="">
+                <h2>Warning!</h2>
+                <p>Are you sure you want to delete your account? All your saved data will be lost.</p>
+                <button type="submit" class="btn btn-warning btn-block mb-3" id="cancelButton">Cancel</button>
+                <form action="{{ url_for('deleteAccount') }}" method="GET">
+                    <button type="submit" class="btn btn-warning btn-block" id="confirmButton">Confirm</button>
+                </form>
+            </div>
+
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    let popup = document.getElementById('popup');
+    const first_button = document.getElementById('delButton');
+    first_button.addEventListener('click', openPopup);
+    const second_button = document.getElementById('cancelButton');
+    second_button.addEventListener('click', openPopup);
+    const third_button = document.getElementById('confirmButton');
+    third_button.addEventListener('click', openPopup);
+
+    function openPopup() {
+        popup.classList.toggle("open-popup");
+    }   
+</script>
+
+{% endblock %}
