@@ -924,6 +924,7 @@ def send_password_request():
         flash('Email Successfully sent. Follow the instructions to reset your email', category='success')
         return redirect('/login')
     except Exception as e:
+        print(e)
         flash('Something went wrong. Please try again later', category='error')
         return redirect('/request_password_reset')
     
