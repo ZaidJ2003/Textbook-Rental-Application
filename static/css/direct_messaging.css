@@ -300,7 +300,7 @@ footer {
 }
 
 .chat-history {
-    max-height: 540px;
+    max-height: calc(100vh - 300px);
     overflow-y: scroll;
 }
 

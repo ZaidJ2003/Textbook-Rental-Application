@@ -1,0 +1,89 @@
+{% extends '_layout.html' %}
+
+{% block title %}Meetup Details{% endblock %}
+
+{% block body %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .header h2 {
+        margin: 0;
+        font-size: 2em;
+        color: #007bff;
+    }
+    .details {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    .details li {
+        padding: 10px 20px;
+        border-bottom: 1px solid #ddd;
+    }
+    .details li:last-child {
+        border-bottom: none;
+    }
+    .details li strong {
+        display: inline-block;
+        width: 150px;
+        color: #555;
+    }
+    .details .description {
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+    }
+    .details .time {
+        font-weight: bold;
+        color: #007bff;
+    }
+    iframe {
+        display: block;
+        width: 100%;
+        height: 450px;
+        border: none;
+        margin-top: 20px;
+        border-radius: 8px;
+    }
+</style>
+
+
+<div class="col-12 text-center mt-3">
+    <h2>Meetup Details</h2>
+</div>
+
+<ul class="details">
+    <li class="description"><strong>Description:</strong> {{ meetup.meeting_description }}</li>
+    <li><strong>Start Time:</strong> <span class="time">{{ meetup.start_time.strftime('%A, %B %d, %Y %I:%M %p') }}</span></li>
+    <li><strong>End Time:</strong> <span class="time">{{ meetup.end_time.strftime('%A, %B %d, %Y %I:%M %p') }}</span></li>
+    <li><strong>Address:</strong> {{ meetup.meeting_address }}</li>
+</ul>
+<iframe
+    width="600"
+    height="450"
+    style="border:0"
+    loading="lazy"
+    allowfullscreen
+    referrerpolicy="no-referrer-when-downgrade"
+    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDUNewuSDlRLem-I3kcBnvU6467VleNicM
+        &q=' + {{ meetup.user_address }}'">
+</iframe>
+
+{% endblock %}

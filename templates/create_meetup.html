@@ -1,3 +1,5 @@
+{% extends '_layout.html' %}
+
 {% block title %}Create meeting{% endblock %}
 
 {% block body %}
@@ -5,7 +7,8 @@
 <div class="col-12 text-center mt-3">
     <h2>Create meeting</h2>
 </div>
-<form action="/meetings" method="POST">
+<form action="/create_meetup" method="POST">
+    <input type="hidden" name="textbook_id" value="{{ textbook_id }}">
     <div class="mb-3">
         <label for="meeting_description" class="form-label">Description</label>
         <textarea class="form-control" id="meeting_description" name="meeting_description" required
