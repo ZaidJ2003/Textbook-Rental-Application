@@ -1,9 +1,10 @@
 # To run, must create virtual env and activate it, then run flask run
-
+import random
+from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, Meetup
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers, Order, OrderItem, Rating, Meetup
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -11,6 +12,12 @@ from src.repositories.user_repository import user_repository_singleton
 import googlemaps
 import stripe
 from flask import g
+from twilio.rest import Client
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import ssl
+from datetime import datetime, timedelta
+
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
 # Flask Initialization
@@ -40,20 +47,80 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 #-------------------------Sets the allowed extensions for image uploads-------------------------
 
-#global test api key for Stripe
+# Global test api key for Stripe
 stripe.api_key = 'sk_test_51Q6zr6BsbRXEeqR8BeQBHg39OmzSwbOOw3YHFCKV42pl0InBUCq2zOIwjMXgyzCxDEYvuziLlLl8ayjZKnBPPlPm00EtEGae67'
+
+# Twilio (library for sending codes through phone) Credentials - Turned out to not be free so differing to email for now
+TWILIO_ACCOUNT_SID = 'AC8040bd31dbca9bf5dfdadac60b3872ab'
+TWILIO_AUTH_TOKEN = '364085e68f48b5b0508f5125dd6a6e0c'
+TWILIO_PHONE_NUMBER = '+19546211760'
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Email API Key (will hide when deployed) and disabling SSL verification as emails wont send with verification required on
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
+not_logged_in_message = 'You must be logged in to access this page'
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
+@app.template_filter('format_date')
+def format_date(value, format='%B %d, %Y'):
+    if value is None:
+        return ""
+    return value.strftime(format)
+
+def send_verification_email(email, code):
+    if not email:
+        abort(403) 
+    
+    message = Mail(
+        from_email='bookborrow763@gmail.com',
+        to_emails=email,
+        subject='BookBorrow registration code',
+        html_content=f'''
+        <p>Enter the 6-digit code below to verify your identity.</p>
+        <h3>{code}</h3>
+        <p>If you did not make this request, please ignore this email.</p>
+        '''
+    )
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        return True 
+    except Exception as e:
+        print(f'Error sending email: {e}')  
+        return False 
+
+def generate_and_send_code(user_id, email):
+    current_user = UnverifiedUsers.query.filter(UnverifiedUsers.unverified_user_id == user_id).first()
+    if current_user:
+        existing_codes = VerificationCodes.query.filter(VerificationCodes.user_id == user_id).all()
+        for code in existing_codes:
+            db.session.delete(code)
+        db.session.commit()
+
+        code = str(random.randint(100000, 999999))
+        verification_code = VerificationCodes(user_id, code, datetime.now() + timedelta(minutes=15)) 
+        db.session.add(verification_code)
+        db.session.commit()
+
+        if send_verification_email(email, code):
+            return verification_code.code_id
+    return None
 
 @app.get('/')
 def home():
     if request.args.get('success') == "true":
+        user_repository_singleton.add_delivery_order()
         user_repository_singleton.clear_cart()
-        flash("Transaction successful!", category="success")
+        flash("Transaction successful! Order is out for delivery.", category="success")
     return render_template('index.html')
 
 @app.get('/deleteAccount')
 def deleteAccount():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        
+        flash(not_logged_in_message, category='error')        
         return redirect(url_for('login'))
     
     user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
@@ -68,9 +135,25 @@ def deleteAccount():
 
         conversations = Conversations.query.filter((Conversations.sender_user_id == user.user_id) |
                                                     (Conversations.receiver_user_id == user.user_id)).all()
-        for conversation in conversations:
-            Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
-            db.session.delete(conversation)
+        
+        if conversations:
+            for conversation in conversations:
+                Messages.query.filter_by(conversation_id=conversation.conversation_id).delete()
+                db.session.delete(conversation)
+
+        textbooks = Textbook.query.filter_by(owners_user_id = user.user_id).all()
+
+        for textbook in textbooks:
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], textbook.image_url.split('/')[-1])
+            if os.path.exists(image_path):           
+                os.remove(image_path)
+
+
+        if user.profile_picture != "/static/images/defaultPFP.png":
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture.split('/')[-1])
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
         Textbook.query.filter_by(owners_user_id=user.user_id).delete()
 
         db.session.delete(user)
@@ -87,7 +170,7 @@ def deleteAccount():
 @app.get('/addDeleteTextbook')
 def addDeleteTextbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        
+        flash(not_logged_in_message, category='error')        
         return redirect(url_for('login'))
     
     filtered_textbooks = db.session.query(Textbook).filter(                    #creates a list of textbooks the user owns/uploaded
@@ -101,7 +184,7 @@ def addDeleteTextbook():
 @app.route('/del_textbook', methods=['GET', 'POST'])
 def del_textbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     textbook_id = request.args.get('textbook_id')    
@@ -127,7 +210,7 @@ def del_textbook():
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     
@@ -139,7 +222,7 @@ def add_textbook():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #----------------------Gets the id of the newly added textbook and appends it to the end of the image filename---------------
             # if textbook id = 12 and filename = image.png then this will output image12.png--------------
@@ -171,7 +254,7 @@ def add_textbook():
 @app.get('/profile')
 def profile():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')
+        flash(not_logged_in_message, category='error')
         return redirect(url_for('login'))
     
     user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
@@ -189,7 +272,6 @@ def profile():
 
 
 #app before_request runs before every single request, this just injects the profile picture url into g.profile_pic_url that is then accessed in layout.html
-
 @app.before_request
 def before_request():
     if 'user' in session:
@@ -210,7 +292,7 @@ def before_request():
 @app.route('/add_pfp', methods=['GET', 'POST'])
 def add_pfp():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     
@@ -218,7 +300,7 @@ def add_pfp():
         file = request.files.get('image')
 
 
-        if file and allowed_file(file.filename):
+        if file and file.filename and allowed_file(file.filename):
 
             #-----------sets filename to pfp_id-12.png assuming a png is uploaded and the current user's id is 12--------------
             filename = secure_filename(file.filename)
@@ -235,6 +317,9 @@ def add_pfp():
                     users.user_id == session['user']['user_id']
                 )
             ).first()
+
+            if not user:
+                abort(403)
 
             user.profile_picture = image_url
             db.session.commit()
@@ -255,7 +340,7 @@ def add_pfp():
 @app.route('/del_pfp', methods=['GET', 'POST'])
 def del_pfp():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     if request.method == 'POST':
@@ -306,8 +391,17 @@ def book():
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
+    avg_rating = 0
+    if len(textbook.ratings) > 0:
+        for rating_info in textbook.ratings:
+            avg_rating += rating_info.rating
+        avg_rating = avg_rating / len(textbook.ratings)
+        avg_rating = round(avg_rating, 1)
+    order_items = OrderItem.query.filter_by(textbook_id = textbook_id).all()
+    active_listings = len(textbook.owner.textbooks)
 
-    return render_template('book.html', textbook = textbook)
+
+    return render_template('book.html', textbook = textbook, avg_rating = avg_rating, num_of_books_sold_by_owner = len(order_items), active_listings = active_listings)
 
 @app.get('/about')
 def about():
@@ -354,7 +448,7 @@ def logout():
     if 'user' in session:
         user_repository_singleton.logout_user()
     else:
-        flash('You are not logged in', category='error')
+        flash(not_logged_in_message, category='error')
     return redirect('/')
 
 @app.get('/register')
@@ -373,12 +467,18 @@ def register_user():
     user_first_name = request.form.get('first-name')
     user_last_name = request.form.get('last-name')
     user_email = request.form.get('email')
+    user_phone_number = request.form.get('phone-number')
     user_username = request.form.get('username')
     user_password = request.form.get('password')
     profile_picture = '/static/images/defaultPFP.png'
 
     if not user_username or not user_password or not user_first_name or not user_last_name or not user_email:
         flash('Please fill out all of the fields', category='error')
+        return redirect('/register')
+
+    # Check if email contains UNCC domain
+    if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
+        flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
         return redirect('/register')
 
     current_user = users.query.filter((func.lower(users.username) == user_username.lower()) | 
@@ -390,22 +490,94 @@ def register_user():
         elif current_user.username.lower() == user_username.lower():
             flash('username already exists', category='error')
         return redirect('/register')
+
+    current_unverified_user = UnverifiedUsers.query.filter((func.lower(UnverifiedUsers.username) == user_username.lower()) | 
+    (func.lower(UnverifiedUsers.email) == user_email.lower())).first()
+
+    if current_unverified_user:
+        if current_unverified_user.email.lower() == user_email.lower():
+            flash('email already exists', category='error')
+        elif current_unverified_user.username.lower() == user_username.lower():
+            flash('username already exists', category='error')
+        return redirect('/register')
     
-    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_password):
-        new_user = users(user_first_name, user_last_name, user_email, user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
-        db.session.add(new_user)
+    
+    if user_repository_singleton.validate_input(user_first_name, user_last_name, user_username, user_phone_number, user_password):
+        # new_user = users(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        # db.session.add(new_user)
+        # db.session.commit()
+        # user_repository_singleton.login_user(new_user)
+        new_unverified_user = UnverifiedUsers(user_first_name, user_last_name, user_email, user_phone_number,user_username, bcrypt.generate_password_hash(user_password).decode(), profile_picture)
+        db.session.add(new_unverified_user)
         db.session.commit()
-        user_repository_singleton.login_user(new_user)
-        flash('Account created successfully', category='success')
+        code_id = generate_and_send_code(new_unverified_user.unverified_user_id, user_email)
+        if code_id:
+            return redirect(f'/verify_user/{code_id}')
+        else:
+            db.session.delete(new_unverified_user)
+            db.session.commit()
+            flash('Something went wrong. Please try again', category='error')
+            return redirect('/register')
+        # flash('Account created successfully', category='success')
     else:
         return redirect('/register')
 
-    return redirect('/')
+    # return redirect('/')
+
+@app.get('/verify_user/<uuid:code_id>')
+def verify_code(code_id):
+    return render_template('verify_code.html', code_id = code_id)
+
+@app.post('/verify_user/<uuid:code_id>')
+def verify_code_submission(code_id):
+    user_code = request.form.get('user-code')
+    
+    # Check if the verification code matches and belongs to the current user
+    original_code = VerificationCodes.query.filter(
+        VerificationCodes.code_id == code_id,
+        VerificationCodes.verification_code == user_code
+    ).first()
+    
+    if original_code:
+        if datetime.now() < original_code.expiration_timestamp:
+            # Retrieve unverified user and create a verified user entry
+            unverified_user = UnverifiedUsers.query.filter_by(unverified_user_id=original_code.user_id).first()
+            
+            if unverified_user:
+                # Transfer unverified user data to a new user entry
+                new_user = users(
+                    first_name=unverified_user.first_name,
+                    last_name=unverified_user.last_name,
+                    email=unverified_user.email,
+                    phone_number=unverified_user.phone_number,
+                    username=unverified_user.username,
+                    password=unverified_user.password,
+                    profile_picture=unverified_user.profile_picture
+                )
+                
+                # Add and commit the new verified user, then delete unverified entry
+                db.session.add(new_user)
+                db.session.delete(unverified_user)
+                db.session.commit()
+                
+                # Log in the new user and redirect to the home page
+                user_repository_singleton.login_user(new_user)
+                flash('Account created successfully', category='success')
+                return redirect('/')
+            else:
+                flash('Something went wrong. User not found.', category='error')
+                return redirect(f'/verify_user/{code_id}')
+        else:
+            flash('Code has expired.', category='error')
+            return redirect('/register')
+    else:
+        flash('Invalid code', category='error')
+        return redirect(f'/verify_user/{code_id}')
 
 @app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     cart_items_dict = {}
     total = 0.00
@@ -434,7 +606,7 @@ def get_cart(cart_id):
 @app.post('/cart/<uuid:cart_id>')
 def add_cart_item(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
@@ -456,7 +628,7 @@ def add_cart_item(cart_id):
 @app.post('/cart/delete/<uuid:cart_id>')
 def delete_cart_item(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
@@ -475,7 +647,7 @@ def delete_cart_item(cart_id):
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     updated_quantity = request.form.get('textbook_quantity')
@@ -581,7 +753,7 @@ def view_meetup(textbook_id):
 # Use any value you like for other form fields
 @app.post('/create-checkout-session')
 def checkout():
-    cart_items = CartItem.query.filter(CartItem.cart_id == session['cart']['cart_id']).all()
+    cart_items = CartItem.query.filter_by(cart_id = session['cart']['cart_id']).all()
     if cart_items is None:
         abort(404)
     line_items = []
@@ -618,7 +790,7 @@ def checkout():
 @app.get('/direct_messaging')
 def get_dms_page():
     if 'user' not in session:
-        flash("Must be logged in to access DM's page", category="error")
+        flash(not_logged_in_message, category="error")
         return redirect('/login')
     
     user_id = session['user']['user_id']
@@ -718,7 +890,7 @@ def load_messages(user_id, textbook_id):
         ).first()
 
     if conversation:
-        messages = Messages.query.filter(Messages.conversation_id == conversation.conversation_id).all()
+        messages = Messages.query.filter_by(conversation_id = conversation.conversation_id).all()
         messages_data = []
         for msg in messages:
             user = users.query.filter(users.user_id == msg.user_id).first()
@@ -731,6 +903,200 @@ def load_messages(user_id, textbook_id):
         return jsonify({"messages": messages_data})
     return jsonify({"messages": []}) 
 
+@app.post('/conversation/<uuid:conversation_id>/delete')
+def delete_conversation(conversation_id):
+    # Delete all messages of conversation and conversation
+    messages = Messages.query.filter_by(conversation_id = conversation_id).delete()
+    conversation = Conversations.query.filter_by(conversation_id = conversation_id).delete()
+    if not conversation:
+        flash('Something went wrong', category='error')
+        return redirect('/direct_messaging')
+    db.session.commit()
+    flash('Conversation has been deleted', category='success')
+    return redirect('/direct_messaging')
+
+@app.post('/conversation/<uuid:conversation_id>/confirm')
+def confirm_order(conversation_id):
+    if 'user' not in session:
+        abort(403)
+    
+    conversation = Conversations.query.filter_by(conversation_id=conversation_id).first()
+    if not conversation:
+        flash('Something went wrong', category='error')
+        return redirect('/direct_messaging')
+    
+    # Only the buyer (sender) can confirm the pickup
+    if conversation.sender_user_id != session['user']['user_id']:
+        flash('Only the buyer can confirm pickup', category='error')
+        return redirect('/direct_messaging')
+    
+    # Add order
+    new_order = Order(session['user']['user_id'], conversation.textbook.price, 'Complete')
+    order_item = OrderItem(new_order.order_id, conversation.textbook.textbook_id, 1)
+    db.session.add(new_order)
+    db.session.add(order_item)
+    
+    # Delete all messages related to the conversation and conversation
+    Messages.query.filter_by(conversation_id=conversation_id).delete()
+    db.session.delete(conversation) 
+    
+    db.session.commit()
+    
+    flash('Pickup has been confirmed. Please visit the orders page to rate your order', category='success')
+    return redirect('/direct_messaging')
+
+
+@app.get('/request_password_reset')
+def get_password_request_page():
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    return render_template('request_password_reset.html')
+
+@app.post('/request_password_reset')
+def send_password_request():
+    user_email = request.form.get('email')
+
+    if not user_email:
+        flash('Please enter an email address.', category='error')
+        return redirect('/request_password_reset')
+    
+    actual_email_user = users.query.filter_by(email = user_email).first()
+    if not actual_email_user:
+        flash('Account with entered email does not exist.', category='error')
+        return redirect('/request_password_reset')
+
+    # password_reset_code = uuid4()
+    token = actual_email_user.get_reset_token()
+    if not token:
+        abort(403)
+    reset_url = url_for('get_reset_password_page', token=token, _external=True)
+    message = Mail(
+    from_email='bookborrow763@gmail.com',
+    to_emails=actual_email_user.email,
+    subject='BookBorrow Reset Password Link',
+    html_content=f"""
+        <p>Click the link below to reset your password:</p>
+        <a href="{reset_url}">Password Reset Link</a>
+        <p>If you did not make this request, please ignore this email.</p>
+    """
+    )   
+    
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg.send(message)
+        flash('Email Successfully sent. Follow the instructions to reset your email', category='success')
+        return redirect('/login')
+    except Exception as e:
+        print(e)
+        flash('Something went wrong. Please try again later', category='error')
+        return redirect('/request_password_reset')
+    
+@app.get('/reset_password/<token>')
+def get_reset_password_page(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    return render_template('reset_password.html', token=token)
+
+@app.post('/reset_password/<token>')
+def reset_password(token):
+    if 'user' in session:
+        flash('You are already logged in', category='error')
+        return redirect('/')
+    user = users.verify_reset_token(token)
+    if not user:
+        flash('Invalid or expired token', category='error')
+        return redirect('/login')
+    
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm-password')
+
+    if not password or not confirm_password:
+        flash('Please fill out all fields', category='error')
+        return redirect('/reset_password')
+    if password != confirm_password:
+        flash('Passwords do not match', category='error')
+        return redirect('/reset_password')
+    if (len(password) < 6) or not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password) or any(char.isspace() for char in password):
+        flash('Password must contain at least 6 characters, a letter, a number, and no spaces', category='error')
+        return redirect(f'/password_reset/{token}')
+
+    user.password = bcrypt.generate_password_hash(password).decode()
+    db.session.commit()
+    flash('Password reset successfully!', category='success')
+    return redirect('/login')
+
+@app.get('/orders')
+def get_orders():
+    if 'user' not in session:
+        flash(not_logged_in_message, 'error')
+        return redirect('/')
+    orders = {}
+    user_orders = Order.query.filter_by(user_id = session['user']['user_id']).all()
+    for order in user_orders:
+        order_items = OrderItem.query.filter_by(order_id = order.order_id).all()
+        orders[str(order.order_id)] = {
+            'status': order.status,
+            'orderItems': order_items,
+            'total_price' : order.price,
+            'order_date' : order.order_date.strftime("%m/%d/%Y")
+        }
+    return render_template('orders.html', orders = orders)
+
+@app.post('/orders/<uuid:order_id>/confirm')
+def move_order_to_confirmed(order_id):
+    order = Order.query.filter_by(order_id = order_id).first()
+    if order:
+        order.status = "Completed"
+        db.session.commit()
+        flash('Order moved to completed', category='success')
+        return redirect('/orders')
+    flash('Could not mark order as completed', category='error')
+    return redirect('/orders')
+
+@app.get('/orders/<uuid:textbook_id>/rate-textbook')
+def get_rate_textbook_page(textbook_id):
+    if 'user' not in session:
+        flash(not_logged_in_message, 'error')
+        return redirect('/')
+    rating = Rating.query.filter(and_(Rating.user_id == session['user']['user_id'], Rating.textbook_id == textbook_id)).first()
+    if rating:
+        flash("You have already rated this book", category='error')
+        return redirect('/orders')
+    textbook = Textbook.query.filter_by(textbook_id = textbook_id).first()
+    if not textbook:
+        flash("something went wrong", category='error')
+        return redirect('/orders')
+    return render_template('rate_textbook.html', textbook = textbook)
+
+@app.post('/orders/<uuid:textbook_id>/rate-textbook')
+def submit_rate_textbook_page(textbook_id):
+    if 'user' not in session:
+        flash(not_logged_in_message, 'error')
+        return redirect('/')
+    textbook = Textbook.query.filter_by(textbook_id = textbook_id).first()
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    if textbook and rating and comment:
+        rating = Rating(session['user']['user_id'], textbook_id, rating, comment)
+        db.session.add(rating)
+        db.session.commit()
+        flash('Thank you for leaving a rating!', category='sucess')
+        return redirect('/')
+    elif textbook and rating:
+        rating = Rating(session['user']['user_id'], textbook_id, rating, )
+        db.session.add(rating)
+        db.session.commit()
+        flash('Thank you for leaving a rating!', category='sucess')
+        return redirect('/')
+    flash('Something went wrong. Unable to leave rating', category='error')
+    return redirect('/orders')
+    
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')
 # def search_users():

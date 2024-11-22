@@ -9,19 +9,15 @@
         <div class="col-lg-12">
             <div class="card chat-app">
                 <div id="plist" class="people-list">
-                    <div class="input-group">
-                        <form class="search-container" id="searchFrom">
-                            <div class="input-group-prepend">
-                                <button><span class="input-group-text"><i class="fa fa-search"></i></span></button>
-                            </div>
-                            <input type="text" id="search-text" name="search-text" class="form-control" placeholder="Search...">
-                        </form>
+                    <div>
+                        <h2 class="text-center">People</h1>
+                        <hr>
                     </div>
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
                             {% if conversation.sender_user_id == session['user']['user_id'] %}
                                 <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
-                                    <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
+                                    <img src="{{ conversation.textbook.image_url }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
                                         <!-- <div class="text-small">| {{ conversation.textbook.title }}</div> -->
@@ -32,7 +28,7 @@
                                 </li>
                             {% else %}
                                 <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
-                                    <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
+                                    <img src="{{ conversation.textbook.image_url }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
                                         <!-- <div class="text-small">{{ conversation.textbook.title }}</div> -->
@@ -47,14 +43,25 @@
                 </div>
                 <div class="chat">
                     <div class="chat-header clearfix">
-                        <div class="row">
-                            <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
+                        <div class="chat-header-left">
+                            <div class="row">
+                                <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
+                            </div>
+                        </div>
+                        <div class="chat-header-right">
+                            <form id="meetupForm" class="meetup" method="get">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
+                            </form>
+                            <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
+                            <button id="confirm_pickup_button" class="btn btn-success" type="submit">Confirm Pickup</button>
                         </div>
                         
                         <form id="meetupForm" class="meetup" method="get">
                             <input type="hidden" name="conversation_id" id="conversation_id">
                             <button id="location_button" class="btn btn-secondary" type="button" onclick="window.location.href='/view_meetup/' + document.querySelector('li.active').getAttribute('textbook-id')">View Meetup</button>
                         </form>
+
                     </div>
 
                     <div class="chat-history" id="chat-history">
@@ -74,6 +81,33 @@
                             </form>                            
                         </div>
                     </div>
+
+                    <div class="popup-pickup" id="popup">
+                        <img src="/static/images/pickup.png" alt="">
+                        <h2>Have you picked up the order?</h2>
+                        <p>Confirming will end this conversation and move this order to complete</p>
+                        <div class="popup-buttons">
+                            <button type="submit" class="btn cancel-button mb-3" id="cancelButton">Cancel</button>
+                            <form id="confirmPickupForm" class="meetup" method="post">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button type="submit" class="btn confirm-button" id="confirmButton">Confirm</button>
+                            </form>
+                        </div>
+                    </div> 
+
+                    <div class="popup-delete alert alert-danger" id="delete-popup">
+                        <img src="/static/images/danger.webp" alt="">
+                        <h2>Warning!</h2>
+                        <p>Are you sure you want to delete this conversation?</p>
+                        <div class="popup-buttons">
+                            <button type="submit" class="btn btn-warning btn-block mb-3" id="cancel-delete-button">Cancel</button>
+                            <form id="confirmDeleteForm" class="meetup" method="post">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button type="submit" class="btn btn-warning btn-block" id="confirm-delete-button">Confirm</button>
+                            </form>
+                        </div>
+                    </div> 
+
                 </div>
             </div>
         </div>
@@ -116,6 +150,27 @@
                             <div class="chat-about">
                                 <h3 class="m-b-0">${full_name} | ${textbook_title} </h3>
                             </div>`;
+
+
+                        const conversationId = usersList[i].getAttribute('conversation-id').trim();
+                        const meetupForm = document.getElementById('meetupForm');
+                        const typeOfUser = document.getElementById('buyerOrSeller');
+                        
+                        // seller of book -> send to page with form to set/edit location
+                        if (typeOfUser.value === 'seller') {
+                            meetupForm.action = `/meetup/${conversationId}/edit`;
+                        }
+                        // buyer of book -> send to location page to view form
+                        else {
+                            meetupForm.action = `/meetup/${conversationId}/view`;
+                        }
+
+                        const confirmDeleteForm = document.getElementById('confirmDeleteForm');
+                        confirmDeleteForm.action = `/conversation/${conversationId}/delete`;
+
+                        const confirmPickupForm = document.getElementById('confirmPickupForm');
+                        confirmPickupForm.action = `/conversation/${conversationId}/confirm`;
+
                         receiver_id.value = userId;
                         textbook_id.value = textbookId;
                         loadMessages(userId, textbookId); 
@@ -192,6 +247,31 @@
                 usersList[0].click();
             }
             
+
+            let popup = document.getElementById('popup');
+            const first_button = document.getElementById('confirm_pickup_button');
+            first_button.addEventListener('click', openPopup);
+            const second_button = document.getElementById('cancelButton');
+            second_button.addEventListener('click', openPopup);
+            const third_button = document.getElementById('confirmButton');
+            third_button.addEventListener('click', openPopup);
+
+            let deletePopup = document.getElementById('delete-popup');
+            const deleteButton = document.getElementById('delete_convo_button');
+            deleteButton.addEventListener('click', openDeletePopup);
+            const cancelDeleteButton = document.getElementById('cancel-delete-button');
+            cancelDeleteButton.addEventListener('click', openDeletePopup);
+            const confirmDeleteButton = document.getElementById('confirm-delete-button');
+            confirmDeleteButton.addEventListener('click', openDeletePopup);
+
+            function openPopup() {
+                popup.classList.toggle("open-popup");
+            }   
+
+            function openDeletePopup() {
+                deletePopup.classList.toggle("open-delete-popup");
+            }   
+
         });
 
         //Function that loads msgs of a convo. userId is receiver ID and sender ID can be retreived through session of logged in user

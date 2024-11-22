@@ -98,12 +98,18 @@ footer {
 }
 
 .container-left{
-    background-image: url("/static/images/temp-book.jpg");
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
+    /* background-size: contain; */
+    /* background-position: center;
+    background-repeat: no-repeat; */
     border-radius: 10px 0 0 10px;
+    /* position: relative; */
+}
+
+.container-left img {
     position: relative;
+    width: 100%;
+    height: 100%;
+
 }
 
 .one{
@@ -244,6 +250,10 @@ span a:hover{
     width: 30px;
 }
 
+.caption {
+    margin-left: 7px;
+}
+
 @media only screen and (max-width: 768px){
     .container-left{
         border-radius: 10px 10px 0 0;
@@ -258,5 +268,6 @@ span a:hover{
     }
     .one, .two{
         max-width:420px;
+        height: 700px;
     }
 }

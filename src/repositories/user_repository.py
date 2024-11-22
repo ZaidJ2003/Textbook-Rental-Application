@@ -1,14 +1,19 @@
-from src.models import db, users, Textbook, Cart, CartItem
+from sqlalchemy import func
+from src.models import db, users, Textbook, Cart, CartItem, Order, OrderItem
 from flask import abort, flash, session
+from uuid import uuid4
 
 class UserRepository:
     # check if a password meets all requirements
-    def validate_input(self, first_name, last_name, username, password):
+    def validate_input(self, first_name, last_name, username, phone_number, password):
         if len(first_name) <= 1:
             flash('First name must be greater than 1 character', category='error')
             return False
         elif len(last_name) <= 1:
             flash('Last name must be greater than 1 character', category='error')
+            return False
+        elif len(phone_number) != 10:
+            flash('Invalid Phone Number', category='error')
             return False
         elif len(username) < 4:
             flash('Username name must be at least 4 characters', category='error')
@@ -18,8 +23,8 @@ class UserRepository:
             return False
         return True
     
-    def add_user(self, first_name, last_name, username, email, password, profile_picture):
-        temp_user = users(first_name, last_name, username, email, password, profile_picture)
+    def add_user(self, first_name, last_name, username, email, phone_number, password, profile_picture):
+        temp_user = users(first_name, last_name, username, email, phone_number, password, profile_picture)
         db.session.add(temp_user)
         db.session.commit()
         
@@ -46,6 +51,7 @@ class UserRepository:
             'email' : user.email,
             'first_name' : user.first_name,
             'last_name' : user.last_name,
+            'phone_number' : user.phone_number,
             'profile_picture' : user.profile_picture
         }
 
@@ -107,6 +113,29 @@ class UserRepository:
             db.session.commit()
             session['cart']['quantity'] = 0
             session.modified = True
+    
+    def add_delivery_order(self):
+        if 'cart' in session and 'cart_id' in session['cart'] and 'user' in session and 'user_id' in session['user']:
+            final_price = 0
+            new_order_id = uuid4()
+
+            order = Order(user_id=session['user']['user_id'], price=0, status='pending', order_id = new_order_id)
+            db.session.add(order)
+            db.session.commit()
+
+            for item in CartItem.query.filter_by(cart_id = session['cart']['cart_id']).all():
+                textbook = Textbook.query.filter_by(textbook_id = item.textbook_id).first()
+                if textbook:
+                    orderItem = OrderItem(new_order_id, textbook.textbook_id, item.quantity)
+                    db.session.add(orderItem)
+                    db.session.commit()
+                    item_price = textbook.price
+                    curr_quantity = item.quantity
+                    final_price += item_price * curr_quantity
+            
+            order.price = final_price
+            db.session.commit()
+
 
 # Singleton to be used in other modules
 user_repository_singleton = UserRepository()

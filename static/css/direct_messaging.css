@@ -70,6 +70,7 @@ footer {
     padding: 20px;
     z-index: 7;
     overflow: scroll;
+
 }
 
 /* .chat-app .chat {
@@ -127,6 +128,19 @@ footer {
 .chat-header {
     display: flex;
     gap: 3rem;
+}
+
+.chat-header-left {
+    justify-content: flex-start;
+    width: 50% ;
+}
+
+.chat-header-right {
+    justify-content: flex-end;
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+    gap:1rem;
 }
 
 .meetup {
@@ -293,6 +307,7 @@ footer {
     flex-shrink: 0; 
     background-color: #f4f7f6;
     position: relative;
+    bottom: 5%;
 }
 
 .visit {
@@ -327,6 +342,77 @@ button {
     height: 100%;
     width: 100%;
     margin-right: 0;
+    max-height: 100vh;
+}
+
+.chat-header button {
+    white-space: nowrap;    
+    width: auto;              
+    display: inline-block;
+    max-height: 65px;
+}
+
+.popup-pickup {
+    width: 500px;
+    background: #ECF0F1;
+    border-radius: 6px;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.1);
+    text-align: center;
+    padding: 0 30px 30px;
+    color:#34495e;
+    visibility: hidden;
+    transition: transform .4s, top .4s;
+}
+
+.popup-delete {
+    width: 500px;
+    background: #ec7171;
+    border-radius: 6px;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.1);
+    text-align: center;
+    padding: 0 30px 30px;
+    color:#fff;
+    visibility: hidden;
+    transition: transform .4s, top .4s;
+}
+
+.open-popup, .open-delete-popup{
+    visibility: visible;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+
+.popup-pickup img, .popup-delete img {
+    width: 100px;
+    margin-top: -50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
+
+.popup-buttons {
+    display: flex;
+    gap:1rem;
+    justify-content: center;
+    white-space: nowrap;    
+    width: auto;  
+    height: 40px;
+}
+
+.cancel-button, .confirm-button {
+    background-color: #95A5A6;
+}
+
+@media (max-width: 770px) {
+    .popup img {
+        display: none;
+    }
 }
 
 @media only screen and (max-width: 767px) {
