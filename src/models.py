@@ -195,3 +195,19 @@ class OrderItem(db.Model):
                 self.order_id = order_id
                 self.textbook_id = textbook_id
                 self.quantity = quantity
+
+class Rating(db.Model):
+        __tablename__ = 'ratings' 
+        rating_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        rating = db.Column(db.Integer, nullable=False)
+        comment = db.Column(db.String(255), nullable=False)
+
+        textbook = db.relationship('Textbook', foreign_keys=[textbook_id], backref='ratings', lazy=True)
+
+        def __init__(self, user_id, textbook_id, rating, comment=None):
+                self.user_id = user_id
+                self.textbook_id = textbook_id
+                self.rating = rating
+                self.comment = comment

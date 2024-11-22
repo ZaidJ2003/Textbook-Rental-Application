@@ -231,6 +231,7 @@ footer {
     background-color: rgba(128, 128, 128, 0.424);
     padding: 10px;
     align-items: center;
+    overflow: scroll;
 }
 
 .order-product {
@@ -256,4 +257,73 @@ footer {
     justify-content: flex-end;
     width: auto;
 } */
+
+.popup-confirm, .popup-rate-seller {
+    width: 500px;
+    background: #ECF0F1;
+    border-radius: 6px;
+    position: fixed;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.1);
+    text-align: center;
+    padding: 0 30px 30px;
+    color:#34495e;
+    visibility: hidden;
+    transition: transform .4s, top .4s;
+}
+
+.open-popup, .open-rate-seller-popup{
+    visibility: visible;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.popup-confirm img, .popup-rate-seller img {
+    width: 100px;
+    margin-top: -50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
+
+.popup-buttons {
+    display: flex;
+    gap:1rem;
+    justify-content: center;
+    white-space: nowrap;    
+    width: auto;  
+}
+
+.cancel-button, .confirm-button {
+    background-color: #95A5A6;
+}
+
+.rate-form {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.quantity-input {
+    width: 10%;
+}
+
+.rate-form select {
+    margin-bottom: 10px;
+}
+
+.comment {
+    height: 100px;
+}
+
+.rating-btn {
+    justify-content: center;
+    margin-top: 10px;
+}
+
+@media (max-width: 770px) {
+    .popup-confirm img, .popup-rate-seller img {
+        display: none;
+    }
+}
 

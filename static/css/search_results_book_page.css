@@ -44,7 +44,7 @@
     border: 2px solid #41aea9;
     padding: 10px;
     margin-left: 10px;
-    margin-right: 10px;
+    margin-right: 20px;
     border-radius: 5px;
     background-color: #f9f9f9;
     justify-content: space-between;
@@ -93,9 +93,19 @@
 }
 .book-container {
     display: flex;
+    flex-direction: column;
     padding: 20px;
     gap: 20px;
     max-width: 1200px;
+    margin: auto;
+}
+
+.top {
+    display: flex;
+    margin-top: 20px;
+}
+
+.bottom {
     margin: auto;
 }
 
@@ -104,6 +114,8 @@
     height: auto;
     object-fit: cover;
     border-radius: 8px;
+    margin-right: 30px;
+    height:100%;
 }
 
 .book-details {
@@ -127,6 +139,12 @@
 .book-price {
     font-size: 1.5rem;
     font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.book-rating {
+    font-size: 1.5rem;
+    font-weight: 550;
     margin-bottom: 20px;
 }
 
@@ -261,9 +279,10 @@ footer {
 }
 
 .card {
+    margin: auto;
+    min-width: 100%;
     background-color: #f7f7f7; 
     border: 1px solid #41aea9; 
-    width: 35rem;
 }
 
 .card-title {
@@ -272,5 +291,9 @@ footer {
 
 .card-text {
     color: #34495e; 
+}
+
+.card p {
+    margin-bottom: 0;
 }
 

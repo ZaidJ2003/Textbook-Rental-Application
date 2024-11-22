@@ -9,13 +9,9 @@
         <div class="col-lg-12">
             <div class="card chat-app">
                 <div id="plist" class="people-list">
-                    <div class="input-group">
-                        <form class="search-container" id="searchFrom">
-                            <div class="input-group-prepend">
-                                <button><span class="input-group-text"><i class="fa fa-search"></i></span></button>
-                            </div>
-                            <input type="text" id="search-text" name="search-text" class="form-control" placeholder="Search...">
-                        </form>
+                    <div>
+                        <h2 class="text-center">People</h1>
+                        <hr>
                     </div>
                     <ul class="list-unstyled chat-list mt-2 mb-0" id="userList">
                         {% for conversation in conversations %}
@@ -47,22 +43,19 @@
                 </div>
                 <div class="chat">
                     <div class="chat-header clearfix">
-                        <div class="row">
-                            <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
+                        <div class="chat-header-left">
+                            <div class="row">
+                                <div class="col-lg-6 header-info" id="chat-header"> <!-- content is loaded via JS --> </div>
+                            </div>
                         </div>
-                        <form id="meetupForm" class="meetup" method="get">
-                            <input type="hidden" name="conversation_id" id="conversation_id">
-                            <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
-                        </form>
-
-                        <!-- <form id="deleteConvoForm" class="meetup" method="post">
-                            <input type="hidden" name="conversation_id" id="conversation_id">
+                        <div class="chat-header-right">
+                            <form id="meetupForm" class="meetup" method="get">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
+                            </form>
                             <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
-                        </form> -->
-
-                        <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
-
-                        <button id="confirm_pickup_button" class="btn btn-success" type="submit">Confirm Pickup</button>
+                            <button id="confirm_pickup_button" class="btn btn-success" type="submit">Confirm Pickup</button>
+                        </div>
                     </div>
 
                     <div class="chat-history" id="chat-history">
@@ -167,11 +160,9 @@
                         }
 
                         const confirmDeleteForm = document.getElementById('confirmDeleteForm');
-                        // Add popup to confirm deletion here
                         confirmDeleteForm.action = `/conversation/${conversationId}/delete`;
 
                         const confirmPickupForm = document.getElementById('confirmPickupForm');
-                        //Add popup for in depth explination to confrim
                         confirmPickupForm.action = `/conversation/${conversationId}/confirm`;
 
                         receiver_id.value = userId;

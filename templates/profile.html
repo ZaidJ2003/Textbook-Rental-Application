@@ -6,7 +6,7 @@
 
 {% if 'user' in session %} 
 <div class="profile-container">
-    <h1 class="mb-0 mt-2 text-center">Welcome back, {{user.first_name}}!</h1>
+    <h1 class="mb-0 mt-2 text-center">Welcome back, {{ user.first_name }}!</h1>
 </div>
 {% endif %} 
 
@@ -116,6 +116,7 @@
     function openPopup() {
         popup.classList.toggle("open-popup");
     }   
+    
 </script>
 
 {% endblock %}

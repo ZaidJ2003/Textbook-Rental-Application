@@ -129,3 +129,13 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS ratings (
+    rating_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    textbook_id UUID NOT NULL,
+    user_id UUID REFERENCES users(user_id),
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
+);

@@ -4,7 +4,7 @@ from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
 import os
 from dotenv import load_dotenv
-from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers, Order, OrderItem
+from src.models import db, users, Textbook, Cart, CartItem, Messages, Conversations, VerificationCodes, UnverifiedUsers, Order, OrderItem, Rating
 from sqlalchemy import or_, func, and_
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -59,7 +59,15 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 # Email API Key (will hide when deployed) and disabling SSL verification as emails wont send with verification required on
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 
+not_logged_in_message = 'You must be logged in to access this page'
+
 ssl._create_default_https_context = ssl._create_unverified_context
+
+@app.template_filter('format_date')
+def format_date(value, format='%B %d, %Y'):
+    if value is None:
+        return ""
+    return value.strftime(format)
 
 def send_verification_email(email, code):
     if not email:
@@ -112,7 +120,7 @@ def home():
 @app.get('/deleteAccount')
 def deleteAccount():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        
+        flash(not_logged_in_message, category='error')        
         return redirect(url_for('login'))
     
     user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
@@ -162,7 +170,7 @@ def deleteAccount():
 @app.get('/addDeleteTextbook')
 def addDeleteTextbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        
+        flash(not_logged_in_message, category='error')        
         return redirect(url_for('login'))
     
     filtered_textbooks = db.session.query(Textbook).filter(                    #creates a list of textbooks the user owns/uploaded
@@ -176,7 +184,7 @@ def addDeleteTextbook():
 @app.route('/del_textbook', methods=['GET', 'POST'])
 def del_textbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     textbook_id = request.args.get('textbook_id')    
@@ -202,7 +210,7 @@ def del_textbook():
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     
@@ -246,7 +254,7 @@ def add_textbook():
 @app.get('/profile')
 def profile():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')
+        flash(not_logged_in_message, category='error')
         return redirect(url_for('login'))
     
     user = db.session.query(users).filter(users.user_id == session['user']['user_id']).first()
@@ -284,7 +292,7 @@ def before_request():
 @app.route('/add_pfp', methods=['GET', 'POST'])
 def add_pfp():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     
@@ -332,7 +340,7 @@ def add_pfp():
 @app.route('/del_pfp', methods=['GET', 'POST'])
 def del_pfp():
     if 'user' not in session:
-        flash("You need to log in to access this page.", category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
     
     if request.method == 'POST':
@@ -383,8 +391,17 @@ def book():
     textbook = db.session.query(Textbook).filter(Textbook.textbook_id == textbook_id).first()
     if textbook is None:
         return "Textbook not found", 404
+    avg_rating = 0
+    if len(textbook.ratings) > 0:
+        for rating_info in textbook.ratings:
+            avg_rating += rating_info.rating
+        avg_rating = avg_rating / len(textbook.ratings)
+        avg_rating = round(avg_rating, 1)
+    order_items = OrderItem.query.filter_by(textbook_id = textbook_id).all()
+    active_listings = len(textbook.owner.textbooks)
 
-    return render_template('book.html', textbook = textbook)
+
+    return render_template('book.html', textbook = textbook, avg_rating = avg_rating, num_of_books_sold_by_owner = len(order_items), active_listings = active_listings)
 
 @app.get('/about')
 def about():
@@ -431,7 +448,7 @@ def logout():
     if 'user' in session:
         user_repository_singleton.logout_user()
     else:
-        flash('You are not logged in', category='error')
+        flash(not_logged_in_message, category='error')
     return redirect('/')
 
 @app.get('/register')
@@ -560,7 +577,7 @@ def verify_code_submission(code_id):
 @app.get('/cart/<uuid:cart_id>')
 def get_cart(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     cart_items_dict = {}
     total = 0.00
@@ -589,7 +606,7 @@ def get_cart(cart_id):
 @app.post('/cart/<uuid:cart_id>')
 def add_cart_item(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
@@ -611,7 +628,7 @@ def add_cart_item(cart_id):
 @app.post('/cart/delete/<uuid:cart_id>')
 def delete_cart_item(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
@@ -630,7 +647,7 @@ def delete_cart_item(cart_id):
 @app.post('/cart/update/<uuid:cart_id>')
 def update_item_quantity(cart_id):
     if 'user' not in session:
-        flash('Must be logged in to access cart and checkout')
+        flash(not_logged_in_message, category='error')
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     updated_quantity = request.form.get('textbook_quantity')
@@ -736,7 +753,7 @@ def checkout():
 @app.get('/direct_messaging')
 def get_dms_page():
     if 'user' not in session:
-        flash("Must be logged in to access DM's page", category="error")
+        flash(not_logged_in_message, category="error")
         return redirect('/login')
     
     user_id = session['user']['user_id']
@@ -934,6 +951,7 @@ def send_password_request():
         flash('Email Successfully sent. Follow the instructions to reset your email', category='success')
         return redirect('/login')
     except Exception as e:
+        print(e)
         flash('Something went wrong. Please try again later', category='error')
         return redirect('/request_password_reset')
     
@@ -979,7 +997,7 @@ def reset_password(token):
 @app.get('/orders')
 def get_orders():
     if 'user' not in session:
-        flash('Log in to view your orders', 'error')
+        flash(not_logged_in_message, 'error')
         return redirect('/')
     orders = {}
     user_orders = Order.query.filter_by(user_id = session['user']['user_id']).all()
@@ -992,6 +1010,55 @@ def get_orders():
             'order_date' : order.order_date.strftime("%m/%d/%Y")
         }
     return render_template('orders.html', orders = orders)
+
+@app.post('/orders/<uuid:order_id>/confirm')
+def move_order_to_confirmed(order_id):
+    order = Order.query.filter_by(order_id = order_id).first()
+    if order:
+        order.status = "Completed"
+        db.session.commit()
+        flash('Order moved to completed', category='success')
+        return redirect('/orders')
+    flash('Could not mark order as completed', category='error')
+    return redirect('/orders')
+
+@app.get('/orders/<uuid:textbook_id>/rate-textbook')
+def get_rate_textbook_page(textbook_id):
+    if 'user' not in session:
+        flash(not_logged_in_message, 'error')
+        return redirect('/')
+    rating = Rating.query.filter(and_(Rating.user_id == session['user']['user_id'], Rating.textbook_id == textbook_id)).first()
+    if rating:
+        flash("You have already rated this book", category='error')
+        return redirect('/orders')
+    textbook = Textbook.query.filter_by(textbook_id = textbook_id).first()
+    if not textbook:
+        flash("something went wrong", category='error')
+        return redirect('/orders')
+    return render_template('rate_textbook.html', textbook = textbook)
+
+@app.post('/orders/<uuid:textbook_id>/rate-textbook')
+def submit_rate_textbook_page(textbook_id):
+    if 'user' not in session:
+        flash(not_logged_in_message, 'error')
+        return redirect('/')
+    textbook = Textbook.query.filter_by(textbook_id = textbook_id).first()
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    if textbook and rating and comment:
+        rating = Rating(session['user']['user_id'], textbook_id, rating, comment)
+        db.session.add(rating)
+        db.session.commit()
+        flash('Thank you for leaving a rating!', category='sucess')
+        return redirect('/')
+    elif textbook and rating:
+        rating = Rating(session['user']['user_id'], textbook_id, rating, )
+        db.session.add(rating)
+        db.session.commit()
+        flash('Thank you for leaving a rating!', category='sucess')
+        return redirect('/')
+    flash('Something went wrong. Unable to leave rating', category='error')
+    return redirect('/orders')
     
 # Endpoint for searching a user - will finish later
 # @app.post('/message_search')
