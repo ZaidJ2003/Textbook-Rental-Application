@@ -307,6 +307,7 @@ footer {
     flex-shrink: 0; 
     background-color: #f4f7f6;
     position: relative;
+    bottom: 5%;
 }
 
 .visit {
@@ -341,6 +342,7 @@ button {
     height: 100%;
     width: 100%;
     margin-right: 0;
+    max-height: 100vh;
 }
 
 .chat-header button {
