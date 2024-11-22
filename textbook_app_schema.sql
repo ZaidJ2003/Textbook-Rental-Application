@@ -140,3 +140,16 @@ CREATE TABLE IF NOT EXISTS ratings (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS meetups(
+    meeting_id            UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID, 
+    textbook_id UUID,
+    meeting_description   VARCHAR(255)    NOT NULL,
+    start_time          TIMESTAMP       NOT NULL,
+    end_time            TIMESTAMP       NOT NULL,
+    user_address       VARCHAR(255)    NOT NULL,       
+    FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+);
+
