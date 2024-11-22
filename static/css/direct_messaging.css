@@ -70,6 +70,7 @@ footer {
     padding: 20px;
     z-index: 7;
     overflow: scroll;
+
 }
 
 /* .chat-app .chat {
@@ -127,6 +128,19 @@ footer {
 .chat-header {
     display: flex;
     gap: 3rem;
+}
+
+.chat-header-left {
+    justify-content: flex-start;
+    width: 50% ;
+}
+
+.chat-header-right {
+    justify-content: flex-end;
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+    gap:1rem;
 }
 
 .meetup {
@@ -333,6 +347,7 @@ button {
     white-space: nowrap;    
     width: auto;              
     display: inline-block;
+    max-height: 65px;
 }
 
 .popup-pickup {

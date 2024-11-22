@@ -23,6 +23,8 @@ Install the dependencies:
 
 pip install -r requirements.txt
 
+Create a file called ".env" which should have the variables in the file ".env-sample"
+
 Run with "flask run --debug"
 
 ## Usage Details:
