@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS textbooks (
 
 -- Added user to be the owner of all AI-generated Textbooks
 --Added user to be the owner of all AI generated Textbooks
-INSERT INTO users (first_name, last_name, email, username, password, registration_date, profile_picture)
+INSERT INTO users (first_name, last_name, email, username, password, phone_number, registration_date, profile_picture)
 VALUES
-('John', 'Stones', 'Test@example.com', 'username', 'password', CURRENT_TIMESTAMP, '/static/images/defaultPFP.png');
+('John', 'Stones', 'Test@example.com', 'username', 'password', '0000000000' , CURRENT_TIMESTAMP, '/static/images/defaultPFP.png');
 
 INSERT INTO textbooks (owners_user_id, title, description, image_url, price)
 VALUES
