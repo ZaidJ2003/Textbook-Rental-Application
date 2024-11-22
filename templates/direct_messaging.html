@@ -17,7 +17,7 @@
                         {% for conversation in conversations %}
                             {% if conversation.sender_user_id == session['user']['user_id'] %}
                                 <li class="clearfix" data-user-id="{{ conversation.receiver_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
-                                    <img src="{{ conversation.receiver.profile_picture }}" alt="avatar">
+                                    <img src="{{ conversation.textbook.image_url }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.receiver_user_id }}">{{ conversation.receiver.first_name }} {{ conversation.receiver.last_name }}</div>
                                         <!-- <div class="text-small">| {{ conversation.textbook.title }}</div> -->
@@ -28,7 +28,7 @@
                                 </li>
                             {% else %}
                                 <li class="clearfix" data-user-id="{{ conversation.sender_user_id }}" textbook-id="{{ conversation.textbook.textbook_id }}" image-id="{{ conversation.textbook.image_url }}" conversation-id=" {{ conversation.conversation_id }}">
-                                    <img src="{{ conversation.sender.profile_picture }}" alt="avatar">
+                                    <img src="{{ conversation.textbook.image_url }}" alt="avatar">
                                     <div class="about">
                                         <div class="name" id="name-{{ conversation.sender_user_id }}">{{ conversation.sender.first_name }} {{ conversation.sender.last_name }}</div>
                                         <!-- <div class="text-small">{{ conversation.textbook.title }}</div> -->
