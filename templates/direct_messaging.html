@@ -49,12 +49,16 @@
                             </div>
                         </div>
                         <div class="chat-header-right">
-                            <form id="meetupForm" class="meetup" method="get">
+                            <!-- <form id="meetupForm" class="meetup" method="get">
                                 <input type="hidden" name="conversation_id" id="conversation_id">
                                 <button id="location_button" class="btn btn-secondary" type="submit">Meetup Location</button>
-                            </form>
+                            </form> -->
                             <button id="delete_convo_button" class="btn btn-danger" type="submit">Delete Conversation</button>
                             <button id="confirm_pickup_button" class="btn btn-success" type="submit">Confirm Pickup</button>
+                            <form id="meetupForm" class="meetup" method="get">
+                                <input type="hidden" name="conversation_id" id="conversation_id">
+                                <button id="location_button" class="btn btn-secondary" type="button" onclick="window.location.href='/view_meetup/' + document.querySelector('li.active').getAttribute('textbook-id')">View Meetup Location</button>
+                            </form>
                         </div>
                     </div>
 
@@ -106,7 +110,7 @@
         </div>
     </div>
     {% else %}
-        <h1 class="mt-4 ml-2">No exisiting chats...Search for some textbooks and schedule some meetups with other users!</h1>
+        <h1 class="mt-4 ml-2">No existing chats...Search for some textbooks and schedule some meetups with other users!</h1>
     {% endif %}
 
     <script>
@@ -150,14 +154,14 @@
                         const meetupForm = document.getElementById('meetupForm');
                         const typeOfUser = document.getElementById('buyerOrSeller');
                         
-                        // seller of book -> send to page with form to set/edit location
-                        if (typeOfUser.value === 'seller') {
-                            meetupForm.action = `/meetup/${conversationId}/edit`;
-                        }
-                        // buyer of book -> send to location page to view form
-                        else {
-                            meetupForm.action = `/meetup/${conversationId}/view`;
-                        }
+                        // // seller of book -> send to page with form to set/edit location
+                        // if (typeOfUser.value === 'seller') {
+                        //     meetupForm.action = `/meetup/${conversationId}/edit`;
+                        // }
+                        // // buyer of book -> send to location page to view form
+                        // else {
+                        //     meetupForm.action = `/meetup/${conversationId}/view`;
+                        // }
 
                         const confirmDeleteForm = document.getElementById('confirmDeleteForm');
                         confirmDeleteForm.action = `/conversation/${conversationId}/delete`;
