@@ -27,11 +27,6 @@ header {
 }
 
 main {
-    background-image: url('/static/images/test.JPG');
-    background-repeat: no-repeat;
-    background-size:contain;
-    width: 100%;
-    text-align: center;
     grid-area: main;
     display: grid;
     grid-template-columns: repeat(10, 1fr);
@@ -99,7 +94,7 @@ footer {
 
 .box {
     flex: 1;
-    border: 2px solid #007200; 
+    border: 2px solid #005A91; 
     border-radius: 8px; 
     padding: 20px;             
     background-color: #f7f7f7; 
@@ -114,7 +109,7 @@ footer {
 
 .box:hover {
     background-color: #e0f7f7;
-    border-color: #008026; 
+    border-color: #005A91; 
 }
 
 
@@ -149,21 +144,8 @@ h1, h2 {
     font-size: 1.5rem;
 }
 
-h3 {
-    color: #ffffff; 
-    font-size: 1.5rem;
-    -webkit-text-stroke: 1px rgb(0, 115, 17);
-}
-
 p {
     color: #555; 
     font-size: 1rem;
     line-height: 1.6;
 }
-
-.container {
-    position: relative;
-    width: 100%;
-    margin: 0 auto; /* Center it */
-  }
-  
