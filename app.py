@@ -665,7 +665,6 @@ def update_item_quantity(cart_id):
     
     return redirect(f'/cart/{cart_id}')
 
-#temporary meetup page (specifically made to implement gmaps)
 @app.route('/create_meetup', methods=['POST', 'GET'])
 def create_meetup():
     if 'user' in session:
@@ -683,7 +682,8 @@ def create_meetup():
             user_address = rev_geocode_result[0]["formatted_address"]
             
             if not host_id or not meeting_description or not start_time or not end_time:
-                return 'Bad Request', 400
+                flash('Please fill out all the fields', category='error')
+                return redirect('/create_meetup')
             
             #check if a meetup already exists for the textbook
             existing_meetup = Meetup.query.filter_by(textbook_id=textbook_id).first()
@@ -714,37 +714,34 @@ def create_meetup():
             return render_template('create_meetup.html', textbook_id=textbook_id)
     else:
         return redirect('/login')
-
+    
 @app.route('/view_meetup/<textbook_id>')
 def view_meetup(textbook_id):
     meetup = Meetup.query.filter_by(textbook_id=textbook_id).first()
     if meetup:
         return render_template('view_meetup.html', meetup=meetup)
     else:
-        return 'Meetup not found', 404
-    
-
-
-
+        flash('Meetup location has not been set for this book yet', category='error')
+        return redirect(request.referrer)
     
 # meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
-#@app.get('/meetup/<uuid:conversation_id>/view')
-#def meetup_page(conversation_id):
-    # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
-    # infrom user location has not been set yet by seller
-    #return render_template('meetup_location.html')
+# @app.get('/meetup/<uuid:conversation_id>/view')
+# def meetup_page(conversation_id):
+#     # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
+#     # infrom user location has not been set yet by seller
+#     return render_template('meetup_location.html')
 
-# meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
-#@app.get('/meetup/<uuid:conversation_id>/edit')
-#def get_location_form(conversation_id):
-    # return template of form to set location page
-    #return render_template('meetup.html')
+# # meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
+# @app.get('/meetup/<uuid:conversation_id>/edit')
+# def get_location_form(conversation_id):
+#     # return template of form to set location page
+#     return render_template('meetup.html')
 
-# post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
-#@app.post('/meetup/<uuid:conversation_id>')
-#def send_location_form(conversation_id):
-    # process form results and query the conversation with conversation_id passed in to update conversation location
-    #return render_template('')
+# # post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
+# @app.post('/meetup/<uuid:conversation_id>')
+# def send_location_form(conversation_id):
+#     # process form results and query the conversation with conversation_id passed in to update conversation location
+#     return render_template('')
 
 # To test checkout, reference STRIPE API TEST documentation or enter 
 # '4242 4242 4242 4242' as credit card 

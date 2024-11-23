@@ -25,41 +25,37 @@
                 <p class="book-rating">Rating: N/A</p>
             {% endif %}
 
-        </h1>
-        <p class="book-description">{{ textbook.description }}</p>
-        <p class="book-price">{{ textbook.price }}</p>
-
-        {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
-            <button class="book-buy-button" onclick="window.location.href='/addDeleteTextbook'">Manage Your Textbooks</button>
-            <form action="/create_meetup" method="get">
-                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                <button class="book-buy-button">Create Meetup Location</button>
-            </form>
-            <button class="book-buy-button" onclick="window.location.href='/view_meetup/{{ textbook.textbook_id }}'">View Meetup</button>
-        {% else %}
-            {% if 'user' in session %}
-            <div class="buy-options">
-                    <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
-                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                        <button class="book-buy-button">Add to Cart (Delivery Only)</button>
-                    </form>
-                    <form action="/direct_messaging" method="get">
-                        <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
-                        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                        <button class="book-buy-button">User Contact</button>
-                    </form>
-                    <button class="book-buy-button" onclick="window.location.href='/view_meetup/{{ textbook.textbook_id }}'">View Meetup</button>
-            </div>
+            {% if 'user' in session and textbook.owners_user_id == session['user']['user_id'] %}
+                <button class="book-buy-button" onclick="window.location.href='/addDeleteTextbook'">Manage Your Textbooks</button>
+                <form action="/create_meetup" method="get">
+                    <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                    <button class="book-buy-button">Create Meetup Location</button>
+                </form>
+                <button class="book-buy-button" onclick="window.location.href='/view_meetup/{{ textbook.textbook_id }}'">View Meetup</button>
             {% else %}
-            <div class="buy-options">
-                <form action="/login" method="get" class="buy-options">
-                    <button class="book-buy-button">Add to Cart (Delivery Only)</button>
-                </form>
-                <form action="/login" method="get" class="buy-options">
-                    <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
-                </form>
-            </div>
-
+                {% if 'user' in session %}
+                    <div class="buy-options">
+                            <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
+                                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                                <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                            </form>
+                            <form action="/direct_messaging" method="get">
+                                <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
+                                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                                <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                            </form>
+                            <button class="book-buy-button" onclick="window.location.href='/view_meetup/{{ textbook.textbook_id }}'">View Meetup</button>
+                    </div>
+                {% else %}
+                    <div class="buy-options">
+                        <form action="/login" method="get" class="buy-options">
+                            <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                        </form>
+                        <form action="/login" method="get" class="buy-options">
+                            <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                        </form>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 

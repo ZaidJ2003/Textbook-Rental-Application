@@ -149,26 +149,6 @@ class Messages(db.Model):
                 self.conversation_id = conversation_id
                 self.message_text = message_text
 
-
-#Meetups table
-class Meetup(db.Model):
-    __tablename__ = 'meetups'
-    meeting_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
-    textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id', ondelete='CASCADE'), nullable=False)
-    meeting_description = db.Column(db.String(255), nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
-    user_address = db.Column(db.String(255), nullable=False)
-
-    def __init__(self, user_id, textbook_id, meeting_description, start_time, end_time, user_address):
-        self.user_id = user_id
-        self.textbook_id = textbook_id
-        self.meeting_description = meeting_description
-        self.start_time = start_time
-        self.end_time = end_time
-        self.user_address = user_address
-
 # Verification Codes table
 class VerificationCodes(db.Model):
         __tablename__ = 'verification_codes'
@@ -232,3 +212,20 @@ class Rating(db.Model):
                 self.rating = rating
                 self.comment = comment
 
+class Meetup(db.Model):
+        __tablename__ = 'meetups'
+        meeting_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id', ondelete='CASCADE'), nullable=False)
+        meeting_description = db.Column(db.String(255), nullable=False)
+        start_time = db.Column(db.DateTime, nullable=False)
+        end_time = db.Column(db.DateTime, nullable=False)
+        user_address = db.Column(db.String(255), nullable=False)
+        
+        def __init__(self, user_id, textbook_id, meeting_description, start_time, end_time, user_address):
+                self.user_id = user_id
+                self.textbook_id = textbook_id
+                self.meeting_description = meeting_description
+                self.start_time = start_time
+                self.end_time = end_time
+                self.user_address = user_address
