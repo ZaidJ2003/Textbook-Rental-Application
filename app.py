@@ -17,6 +17,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import ssl
 from datetime import datetime, timedelta
+import base64
 
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
@@ -210,18 +211,48 @@ def del_textbook():
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
     if 'user' not in session:
-        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')  # makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
-    
-    
+
     if request.method == 'POST':
         title = request.form.get('title')
-        description = request.form.get('description')        #gets info from the form and the current users id
+        description = request.form.get('description')  # gets info from the form and the current user's id
         price = request.form.get('price')
         owners_user_id = session['user']['user_id']
-        file = request.files.get('image')
+        cropped_image_data_url = request.form.get('cropped_image')
 
+#--------------------------------turn the base64 cropped image string and converts it to a png to be stored in static/images, new method follows the same image naming convention as the old one------------------
+        if cropped_image_data_url:
+            image_data = cropped_image_data_url.split(",")[1]
+            image_bytes = base64.b64decode(image_data)
 
+            new_textbook = Textbook(title=title, description=description, image_url="", price=price, owners_user_id=owners_user_id)
+            db.session.add(new_textbook)
+            db.session.flush()  
+
+            textbook_id = new_textbook.textbook_id
+
+            filename = f"Textbook_id-{textbook_id}.jpg"       #we can change the file extension to whatever and everything will still work, just using jpg for smaller file sizes.
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+            image_url = f"/static/images/{filename}"
+
+            new_textbook.image_url = image_url
+            db.session.commit()
+
+            flash('Textbook added successfully!', category='success')
+            return redirect(url_for('addDeleteTextbook'))
+
+        else:
+            flash('No image data received.', category='error')
+            return redirect(url_for('addDeleteTextbook'))
+
+    return render_template('addDeleteTextbook.html')
+
+"""
+        LEGACY METHOD
         if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #----------------------Gets the id of the newly added textbook and appends it to the end of the image filename---------------
@@ -250,7 +281,7 @@ def add_textbook():
         return redirect(url_for('addDeleteTextbook'))
 
     return render_template('addDeleteTextbook.html')
-
+"""
 @app.get('/profile')
 def profile():
     if 'user' not in session:
