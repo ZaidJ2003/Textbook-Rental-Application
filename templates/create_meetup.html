@@ -4,31 +4,148 @@
 
 {% block body %}
 
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: 75px auto 50px;
+        grid-template-areas: 
+        "hd"
+        "main"
+        "ft";
+        margin: 0 0 var(--header-height) 0; 
+    }
+
+    header {
+        grid-area: hd;
+        background-color: #41aea9;
+        color: #005A91;
+        padding: 10px;
+        text-align: center;
+        position: relative;
+    }
+
+    /* main {
+        grid-area: main;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        grid-auto-rows: auto;
+        padding-bottom: 50px;
+    } */
+
+    footer {
+        grid-area: ft;
+        background-color: #34495e;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+        margin-top: auto;
+        bottom: 0;
+        width: 100%;
+        position: sticky;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        margin: 0 0 var(--header-height) 0; 
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .header h2 {
+        margin: 0;
+        font-size: 2em;
+        color: #007bff;
+    }
+    .details {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    .details li {
+        padding: 10px 20px;
+        border-bottom: 1px solid #ddd;
+    }
+    .details li:last-child {
+        border-bottom: none;
+    }
+    .details li strong {
+        display: inline-block;
+        width: 150px;
+        color: #555;
+    }
+    .details .description {
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+    }
+    .details .time {
+        font-weight: bold;
+        color: #007bff;
+    }
+    iframe {
+        display: block;
+        width: 100%;
+        height: 450px;
+        border: none;
+        margin-top: 20px;
+        border-radius: 8px;
+    }
+    button {
+        width: 20%;
+    }
+</style>
+
 <div class="col-12 text-center mt-3">
     <h2>Create meeting</h2>
 </div>
+
 <form action="/create_meetup" method="POST">
-    <input type="hidden" name="textbook_id" value="{{ textbook_id }}">
-    <div class="mb-3">
-        <label for="meeting_description" class="form-label">Description</label>
-        <textarea class="form-control" id="meeting_description" name="meeting_description" required
-            placeholder="Enter its description"></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="start_time" class="form-label">Start Time</label>
-        <input type="datetime-local" class="form-control" id="start_time" name="start_time" required
-            placeholder="Enter start time"> <!-- type="datetime-local" -->
-    </div>
-    <div class="mb-3">
-        <label for="end_time" class="form-label">End Time</label>
-        <input type="datetime-local" class="form-control" id="end_time" name="end_time" required placeholder="Enter end time">
-        <!-- type="datetime-local" -->
-    </div>
-    <div class="mb-3">
-        <label for="user_address" class="form-label">Address (Powered by Geolocation)</label>
-        <input type="text" class="form-control" id="user_address" name="user_address" required
-            placeholder="Enter meeting address">
-    </div>
+    <ul class="details">
+        <li class="mb-3">
+            <input type="hidden" name="textbook_id" value="{{ textbook_id }}">
+            <label for="meeting_description" class="form-label">Description</label>
+            <textarea class="form-control" id="meeting_description" name="meeting_description" required
+                placeholder="Enter its description"></textarea>
+        </li>
+        <li class="mb-3">
+            <label for="start_time" class="form-label">Start Time</label>
+            <input type="datetime-local" class="form-control" id="start_time" name="start_time" required
+                placeholder="Enter start time"> <!-- type="datetime-local" -->
+        </li class="mb-3">
+        <li>
+            <label for="end_time" class="form-label">End Time</label>
+            <input type="datetime-local" class="form-control" id="end_time" name="end_time" required placeholder="Enter end time">
+                <!-- type="datetime-local" -->
+        </li>
+        <li class="mb-3">
+            <label for="user_address" class="form-label">Address (Powered by Geolocation)</label>
+            <input type="text" class="form-control" id="user_address" name="user_address" required
+                placeholder="Enter meeting address">
+        </li>
+    </ul>
     <div class="mb-5 text-center">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div>

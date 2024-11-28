@@ -17,6 +17,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import ssl
 from datetime import datetime, timedelta
+import base64
 
 #bcrypt, os, dotenv might be helpful (delete comment if not needed)
 load_dotenv()
@@ -210,18 +211,48 @@ def del_textbook():
 @app.route('/add_textbook', methods=['GET', 'POST'])
 def add_textbook():
     if 'user' not in session:
-        flash(not_logged_in_message, category='error')        #makes sure the user is logged in, if they aren't they get redirected to the login page
+        flash(not_logged_in_message, category='error')  # makes sure the user is logged in, if they aren't they get redirected to the login page
         return redirect(url_for('login'))
-    
-    
+
     if request.method == 'POST':
         title = request.form.get('title')
-        description = request.form.get('description')        #gets info from the form and the current users id
+        description = request.form.get('description')  # gets info from the form and the current user's id
         price = request.form.get('price')
         owners_user_id = session['user']['user_id']
-        file = request.files.get('image')
+        cropped_image_data_url = request.form.get('cropped_image')
 
+#--------------------------------turn the base64 cropped image string and converts it to a png to be stored in static/images, new method follows the same image naming convention as the old one------------------
+        if cropped_image_data_url:
+            image_data = cropped_image_data_url.split(",")[1]
+            image_bytes = base64.b64decode(image_data)
 
+            new_textbook = Textbook(title=title, description=description, image_url="", price=price, owners_user_id=owners_user_id)
+            db.session.add(new_textbook)
+            db.session.flush()  
+
+            textbook_id = new_textbook.textbook_id
+
+            filename = f"Textbook_id-{textbook_id}.jpg"       #we can change the file extension to whatever and everything will still work, just using jpg for smaller file sizes.
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+            image_url = f"/static/images/{filename}"
+
+            new_textbook.image_url = image_url
+            db.session.commit()
+
+            flash('Textbook added successfully!', category='success')
+            return redirect(url_for('addDeleteTextbook'))
+
+        else:
+            flash('No image data received.', category='error')
+            return redirect(url_for('addDeleteTextbook'))
+
+    return render_template('addDeleteTextbook.html')
+
+"""
+        LEGACY METHOD
         if file and file.filename and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #----------------------Gets the id of the newly added textbook and appends it to the end of the image filename---------------
@@ -250,7 +281,7 @@ def add_textbook():
         return redirect(url_for('addDeleteTextbook'))
 
     return render_template('addDeleteTextbook.html')
-
+"""
 @app.get('/profile')
 def profile():
     if 'user' not in session:
@@ -665,7 +696,6 @@ def update_item_quantity(cart_id):
     
     return redirect(f'/cart/{cart_id}')
 
-#temporary meetup page (specifically made to implement gmaps)
 @app.route('/create_meetup', methods=['POST', 'GET'])
 def create_meetup():
     if 'user' in session:
@@ -683,7 +713,8 @@ def create_meetup():
             user_address = rev_geocode_result[0]["formatted_address"]
             
             if not host_id or not meeting_description or not start_time or not end_time:
-                return 'Bad Request', 400
+                flash('Please fill out all the fields', category='error')
+                return redirect('/create_meetup')
             
             #check if a meetup already exists for the textbook
             existing_meetup = Meetup.query.filter_by(textbook_id=textbook_id).first()
@@ -714,37 +745,34 @@ def create_meetup():
             return render_template('create_meetup.html', textbook_id=textbook_id)
     else:
         return redirect('/login')
-
+    
 @app.route('/view_meetup/<textbook_id>')
 def view_meetup(textbook_id):
     meetup = Meetup.query.filter_by(textbook_id=textbook_id).first()
     if meetup:
         return render_template('view_meetup.html', meetup=meetup)
     else:
-        return 'Meetup not found', 404
-    
-
-
-
+        flash('Meetup location has not been set for this book yet', category='error')
+        return redirect(request.referrer)
     
 # meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
-#@app.get('/meetup/<uuid:conversation_id>/view')
-#def meetup_page(conversation_id):
-    # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
-    # infrom user location has not been set yet by seller
-    #return render_template('meetup_location.html')
+# @app.get('/meetup/<uuid:conversation_id>/view')
+# def meetup_page(conversation_id):
+#     # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
+#     # infrom user location has not been set yet by seller
+#     return render_template('meetup_location.html')
 
-# meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
-#@app.get('/meetup/<uuid:conversation_id>/edit')
-#def get_location_form(conversation_id):
-    # return template of form to set location page
-    #return render_template('meetup.html')
+# # meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
+# @app.get('/meetup/<uuid:conversation_id>/edit')
+# def get_location_form(conversation_id):
+#     # return template of form to set location page
+#     return render_template('meetup.html')
 
-# post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
-#@app.post('/meetup/<uuid:conversation_id>')
-#def send_location_form(conversation_id):
-    # process form results and query the conversation with conversation_id passed in to update conversation location
-    #return render_template('')
+# # post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
+# @app.post('/meetup/<uuid:conversation_id>')
+# def send_location_form(conversation_id):
+#     # process form results and query the conversation with conversation_id passed in to update conversation location
+#     return render_template('')
 
 # To test checkout, reference STRIPE API TEST documentation or enter 
 # '4242 4242 4242 4242' as credit card 
