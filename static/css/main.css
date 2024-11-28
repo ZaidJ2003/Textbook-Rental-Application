@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -5,11 +6,6 @@
 }
 
 body {
-    /* background-image: url('/static/images/test.jpg');
-    background-size: cover; 
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-attachment: fixed; */
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     display: grid;
@@ -163,10 +159,3 @@ footer {
     float: right;
     width: 30px;
 }
-
-
-
-
-
-
-

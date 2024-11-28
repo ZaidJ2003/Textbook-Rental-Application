@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
+from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from sqlalchemy.sql import func
 from flask_login import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+import os
+from uuid import uuid4
 
 db = SQLAlchemy()
 
@@ -28,6 +31,30 @@ class users(db.Model, UserMixin):
                 self.password = password
                 self.profile_picture = profile_picture
                 self.phone_number = phone_number
+        
+        def get_reset_token(self, expires_sec=900):
+                # must have app_secret key variable in env file
+                app_secret_key = os.getenv('APP_SECRET_KEY')
+                if app_secret_key:
+                        s = Serializer(app_secret_key)
+                        token = s.dumps({'user_id' : str(self.user_id)})
+                        if isinstance(token, bytes):
+                                token = token.decode()
+                        return token
+                return None
+        
+        @staticmethod
+        def verify_reset_token(token):
+                # must have app_secret key variable in env file
+                app_secret_key = os.getenv('APP_SECRET_KEY')
+                if app_secret_key:
+                        s = Serializer(app_secret_key)
+                        try:
+                                user_id = s.loads(token)['user_id']
+                        except:
+                                return None
+                        return users.query.get(user_id)
+                return None
 
 class UnverifiedUsers(db.Model):
         __tablename__ = 'unverified_users'
@@ -135,3 +162,70 @@ class VerificationCodes(db.Model):
                 self.user_id = user_id
                 self.verification_code = verification_code
                 self.expiration_timestamp = expiration_date
+
+# Order table
+class Order(db.Model):
+        __tablename__ = 'orders'
+        order_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+        status = db.Column(db.String(10), default='pending')
+        price = db.Column(db.Numeric(10, 2), nullable=False)
+        order_date = db.Column(db.DateTime, nullable=False, default=func.now())
+
+        orderItems = db.relationship('OrderItem', back_populates='order', lazy=True)
+
+        def __init__(self, user_id, price, status='pending', order_id = None):
+                self.order_id = order_id or uuid4()
+                self.user_id = user_id
+                self.status = status
+                self.price = price
+
+# Cart items table
+class OrderItem(db.Model):
+        __tablename__ = 'order_items'
+        item_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('orders.order_id'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        quantity = db.Column(db.Integer, nullable=False)
+
+        order = db.relationship('Order', back_populates='orderItems', lazy=True)
+        textbook = db.relationship('Textbook', foreign_keys=[textbook_id], lazy=True)
+
+        def __init__(self, order_id, textbook_id, quantity):
+                self.order_id = order_id
+                self.textbook_id = textbook_id
+                self.quantity = quantity
+
+class Rating(db.Model):
+        __tablename__ = 'ratings' 
+        rating_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+        rating = db.Column(db.Integer, nullable=False)
+        comment = db.Column(db.String(255), nullable=False)
+
+        textbook = db.relationship('Textbook', foreign_keys=[textbook_id], backref='ratings', lazy=True)
+
+        def __init__(self, user_id, textbook_id, rating, comment=None):
+                self.user_id = user_id
+                self.textbook_id = textbook_id
+                self.rating = rating
+                self.comment = comment
+
+class Meetup(db.Model):
+        __tablename__ = 'meetups'
+        meeting_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+        user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+        textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id', ondelete='CASCADE'), nullable=False)
+        meeting_description = db.Column(db.String(255), nullable=False)
+        start_time = db.Column(db.DateTime, nullable=False)
+        end_time = db.Column(db.DateTime, nullable=False)
+        user_address = db.Column(db.String(255), nullable=False)
+        
+        def __init__(self, user_id, textbook_id, meeting_description, start_time, end_time, user_address):
+                self.user_id = user_id
+                self.textbook_id = textbook_id
+                self.meeting_description = meeting_description
+                self.start_time = start_time
+                self.end_time = end_time
+                self.user_address = user_address
