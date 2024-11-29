@@ -19,6 +19,7 @@
                 {% endif %}
             </h1>
             <p class="book-description">{{ textbook.description }}</p>
+            <p class="book-price">${{ textbook.price }}</p>
             {% if avg_rating != 0 %}
                 <p class="book-rating">Rating: {{ avg_rating }}/5.0 ({{ textbook.ratings|count }}) </p>
             {% else %}
