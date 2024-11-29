@@ -29,7 +29,7 @@
                             <h5>Total: ${{order_details.total_price}}</h5>
                             <h5>Order Date: {{order_details.order_date}}</h5>
                             {% if order_details.status == 'pending' or order_details.status == 'Pending' %}
-                                <h4><button class="order-btn" data-order-id="{{order_id}}">Move Order to Completed</button></h4>
+                                <h4><button class="order-btn" data-order-id="{{order_id}}" id="first_button">Move Order to Completed</button></h4>
                                 <div class="popup-confirm" id="popup-confirm">
                                     <img src="/static/images/pickup.png" alt="">
                                     <h2>Have you recieved your order?</h2>
@@ -42,31 +42,6 @@
                                         </form>
                                     </div>
                                 </div> 
-                            {% else %}
-                                <!-- <h4><button class="rate-seller-btn" data-order-id="{{order_id}}">Rate Seller</button></h4>
-                                <div class="popup-rate-seller" id="popup-rate-seller">
-                                    <h2>Rate Seller</h2>
-                                    <p>Please rate your experience with the seller:</p>
-                                    <div class="star-rating">
-                                        <span class="fa fa-star" data-rating="1"></span>
-                                        <span class="fa fa-star" data-rating="2"></span>
-                                        <span class="fa fa-star" data-rating="3"></span>
-                                        <span class="fa fa-star" data-rating="4"></span>
-                                        <span class="fa fa-star" data-rating="5"></span>
-                                    </div>
-                                    <input type="hidden" id="seller-rating" name="seller-rating" value="0"> 
-                                    
-                                    <p>Optional Comment:</p>
-                                    <textarea name="comment" id="{{order_id}}-comment" placeholder="Leave a comment about your experience"></textarea>
-
-                                    <div class="popup-buttons">
-                                        <button type="submit" class="btn cancel-button mb-3" id="cancelButton">Cancel</button>
-                                        <form id="sellerRatingForm" class="meetup" method="post" action="/orders/{{order_id}}/rate-seller">
-                                            <input type="hidden" name="order_id" id="order_id" value="{{order_id}}">
-                                            <button type="submit" class="btn confirm-button" id="confirmButton">Submit Rating</button>
-                                        </form>
-                                    </div>
-                                </div>  -->
                             {% endif %}
                     </div>
                     {% for item in order_details.orderItems %}
@@ -76,6 +51,9 @@
                                 <h2 class="search-textbook-title">{{ item.textbook.title }}</h2>
                                 <p class="search-textbook-description">{{ item.textbook.description }}</p>
                                 <p class="quantity"> Quantity: {{ item.quantity }} </p>
+                                {% if item.due_date %}
+                                    <p class="quantity"> Due Date: {{ item.due_date.strftime("%B %d, %Y") }} </p>
+                                {% endif %}
                             </div>
                             <div class="search-textbook-right">
                                 <a href="/orders/{{item.textbook.textbook_id}}/rate-textbook"><h4><button class="order-btn">Rate Textbook</button></h4></a>
@@ -94,47 +72,17 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
         let confirm_popup = document.getElementById('popup-confirm');
-        const first_buttons = document.querySelectorAll('.order-btn');
-        first_buttons.forEach(button => {
-            button.addEventListener('click', openPopup);
-        });
-
-        const cancel_buttons = document.querySelectorAll('.cancel-button');
-        cancel_buttons.forEach(button => {
-            button.addEventListener('click', openPopup);
-        });
-
-        const confirm_buttons = document.querySelectorAll('.confirm-button');
-        confirm_buttons.forEach(button => {
-            button.addEventListener('click', openPopup);
-        });
-
-        // let rate_seller_popup = document.getElementById('popup-rate-seller');
-        // const rate_seller_buttons = document.querySelectorAll('.rate-seller-btn');
-        // rate_seller_buttons.forEach(button => {
-        //     button.addEventListener('click', openSellerPopup);
-        // });
-
-        // const rate_cancel_buttons = document.querySelectorAll('.cancel-button');
-        // rate_cancel_buttons.forEach(button => {
-        //     button.addEventListener('click', openSellerPopup);
-        // });
-
-        // const rate_confirm_buttons = document.querySelectorAll('.confirm-button');
-        // rate_confirm_buttons.forEach(button => {
-        //     button.addEventListener('click', openSellerPopup);
-        // });
+        const first_button = document.getElementById('first_button');
+        first_button.addEventListener('click', openPopup);
+        const cancel_button = document.getElementById('cancelButton');
+        cancel_button.addEventListener('click', openPopup);
+        const confirm_button = document.getElementById('confirmButton');
+        confirm_button.addEventListener('click', openPopup);
 
         function openPopup() {
             confirm_popup.classList.toggle("open-popup");
         }
-
-        // function openSellerPopup() {
-        //     rate_seller_popup.classList.toggle("open-popup");
-        // }
-    });
 
 </script>
 

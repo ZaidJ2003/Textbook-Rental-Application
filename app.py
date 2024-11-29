@@ -1,4 +1,5 @@
 # To run, must create virtual env and activate it, then run flask run
+from decimal import Decimal
 import random
 from uuid import uuid4
 from flask import Flask, abort, redirect, render_template, request, url_for, flash, jsonify, session, blueprints, render_template_string
@@ -246,7 +247,7 @@ def add_textbook():
             return redirect(url_for('addDeleteTextbook'))
 
         else:
-            flash('No image data received.', category='error')
+            flash('Please select an image for the book.', category='error')
             return redirect(url_for('addDeleteTextbook'))
 
     return render_template('addDeleteTextbook.html')
@@ -611,16 +612,19 @@ def get_cart(cart_id):
         flash(not_logged_in_message, category='error')
         return redirect('/login')
     cart_items_dict = {}
+    rentals = {}
     total = 0.00
 
     cart = Cart.query.filter_by(cart_id=cart_id).first()
     if not cart:
-        return "Cart not found", 404
-
-    cart_items = CartItem.query.filter(CartItem.cart_id == cart_id).all()
+        flash('Something went wrong', category='error')
+        return redirect(request.referrer)
+    
+    cart_items = CartItem.query.filter_by(cart_id = cart_id).all()
     for item in cart_items:
         textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
-        if textbook:
+
+        if textbook and item.checkout_type == 'buy':
             total += float(textbook.price * item.quantity)
             cart_items_dict[textbook.textbook_id] = {
                 'title' : textbook.title,
@@ -630,9 +634,21 @@ def get_cart(cart_id):
                 'image_url': textbook.image_url,
                 'total' : (item.quantity * textbook.price)
             }
-    # tax = round(total * .0475,2)
+        elif textbook and item.checkout_type == 'rent':
+            rental_price = textbook.price * Decimal('0.45') if item.duration == 8 else textbook.price * Decimal('0.45') 
+            due_date = datetime.now() + timedelta(weeks=8) if item.duration == 8 else datetime.now() + timedelta(weeks=16)
+            total += float(rental_price)
+            rentals[textbook.textbook_id] = {
+                'title' : textbook.title,
+                'description' : textbook.description,
+                'price' : rental_price,
+                'duration' : item.duration,
+                'image_url': textbook.image_url,
+                'due_date': due_date
+            }
     final_price = round(total, 2)
-    return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price)
+
+    return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price, rentals = rentals)
 
 @app.post('/cart/<uuid:cart_id>')
 def add_cart_item(cart_id):
@@ -645,6 +661,9 @@ def add_cart_item(cart_id):
     textbook = CartItem.query.filter(
     and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
 
+    if textbook and textbook.checkout_type == 'rent':
+        flash('Item is already in cart for either rent or purchase.', category='error')
+        return redirect(request.referrer)
     if textbook:
         textbook.quantity += 1
     else:
@@ -695,6 +714,36 @@ def update_item_quantity(cart_id):
     user_repository_singleton.update_cart_quantity()
     
     return redirect(f'/cart/{cart_id}')
+
+@app.post('/book/<uuid:textbook_id>/rent')
+def add_rental_to_cart(textbook_id):
+    if 'user' not in session:
+        flash(not_logged_in_message, category='error')
+        return redirect('/login')
+    if not textbook_id:
+        flash('Something went wrong. Please try again', category='error')
+        return redirect(request.referrer)
+    
+    print(session['cart']['cart_id'])
+    cart_id = request.form.get('cart_id')
+    duration = request.form.get('duration')
+    duration = 8 if duration == '1' else 16
+
+    textbook = CartItem.query.filter(
+    and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
+
+    if textbook:
+        flash('Item is already in cart for either rent or purchase.', category='error')
+        return redirect(request.referrer)
+    else:
+        new_item = CartItem(cart_id, textbook_id, 1, 'rent', duration)
+        db.session.add(new_item)
+
+    db.session.commit()
+    user_repository_singleton.update_cart_quantity()
+
+    return redirect(f'/cart/{cart_id}')
+    
 
 @app.route('/create_meetup', methods=['POST', 'GET'])
 def create_meetup():

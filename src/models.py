@@ -106,11 +106,15 @@ class CartItem(db.Model):
         cart_id = db.Column(UUID(as_uuid=True), db.ForeignKey('carts.cart_id'), nullable=False)
         textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
         quantity = db.Column(db.Integer, nullable=False)
+        checkout_type = db.Column(db.String(10), nullable=False, default='buy')
+        duration = db.Column(db.Integer, nullable=True, default=None) 
 
-        def __init__(self, cart_id, textbook_id, quantity):
+        def __init__(self, cart_id, textbook_id, quantity, checkout_type='buy', duration = None):
                 self.cart_id = cart_id
                 self.textbook_id = textbook_id
                 self.quantity = quantity
+                self.checkout_type = checkout_type
+                self.duration = duration
 
 # Conversations table
 class Conversations(db.Model):
@@ -187,14 +191,16 @@ class OrderItem(db.Model):
         order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('orders.order_id'), nullable=False)
         textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
         quantity = db.Column(db.Integer, nullable=False)
+        due_date = db.Column(db.DateTime, nullable=True)
 
         order = db.relationship('Order', back_populates='orderItems', lazy=True)
         textbook = db.relationship('Textbook', foreign_keys=[textbook_id], lazy=True)
 
-        def __init__(self, order_id, textbook_id, quantity):
+        def __init__(self, order_id, textbook_id, quantity, due_date=None):
                 self.order_id = order_id
                 self.textbook_id = textbook_id
                 self.quantity = quantity
+                self.due_date = due_date
 
 class Rating(db.Model):
         __tablename__ = 'ratings' 
@@ -229,3 +235,28 @@ class Meetup(db.Model):
                 self.start_time = start_time
                 self.end_time = end_time
                 self.user_address = user_address
+
+# class Rental(db.Model):
+#         __tablename__ = 'rentals'
+
+#         rental_id = db.Column(UUID(as_uuid=True), primary_key=True, default = uuid.uuid4)
+#         user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+#         textbook_id = db.Column(UUID(as_uuid=True), db.ForeignKey('textbooks.textbook_id'), nullable=False)
+#         owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.user_id'), nullable=False)
+#         rental_price = db.Column(db.Numeric(10, 2), nullable=False)
+#         duration = db.Column(db.DateTime, nulllable=False)
+#         due_date = db.Column(db.DateTime, nullable=False)
+#         status = db.Column(db.String(15), default='rented', nullable=False)
+
+#         user = db.relationship('users', foreign_keys=[user_id])
+#         owner = db.relationship('users', foreign_keys=[owner_id])
+#         textbook = db.relationship('Textbook', foreign_keys=[textbook_id])
+
+#         def __init__(self, user_id, textbook_id, owner_id, rental_price, duration, due_date, status='rented'):
+#                 self.user_id = user_id
+#                 self.textbook_id = textbook_id
+#                 self.owner_id = owner_id
+#                 self.rental_price = rental_price
+#                 self.duration = duration
+#                 self.due_date = due_date
+#                 self.status = status
