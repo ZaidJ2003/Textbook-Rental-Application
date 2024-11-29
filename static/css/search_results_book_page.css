@@ -297,3 +297,68 @@ footer {
     margin-bottom: 0;
 }
 
+.popup {
+    background: #ECF0F1;
+    border-radius: 6px;
+    position: absolute;
+    top:50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.1);
+    text-align: center;
+    padding: 0 30px 30px;
+    color:#34495e;
+    visibility: hidden;
+    transition: transform .4s, top .4s;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.open-popup{
+    visibility: visible;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* .popup img {
+    margin-top: -50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+} */
+
+.popup-buttons {
+    display: flex;
+    justify-content: center;
+    white-space: nowrap;    
+    width: auto;  
+    /* height: 40px; */
+    gap:1rem;
+}
+
+
+.rental-duration label {
+    font-size: 18px;
+    color: #333;
+    margin-right: 10px;
+}
+
+.rental-duration select {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+}
+
+.price-summary p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.price-summary span {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+

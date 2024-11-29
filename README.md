@@ -23,7 +23,9 @@ Install the dependencies:
 
 pip install -r requirements.txt
 
-Create a file called ".env" which should have the variables in the file ".env-sample"
+Create a file called ".env" which should have the variables in the file ".env-sample". set the variables to appropriate values
+
+Create the PostgreSQL database using the schema in the textbook_app_schema.sql file. Can use terminal or DataGrip Application which is free for students
 
 Run with "flask run --debug"
 

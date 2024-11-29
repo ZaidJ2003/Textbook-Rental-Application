@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+from decimal import Decimal
 from sqlalchemy import func
 from src.models import db, users, Textbook, Cart, CartItem, Order, OrderItem
 from flask import abort, flash, session
@@ -126,12 +128,17 @@ class UserRepository:
             for item in CartItem.query.filter_by(cart_id = session['cart']['cart_id']).all():
                 textbook = Textbook.query.filter_by(textbook_id = item.textbook_id).first()
                 if textbook:
-                    orderItem = OrderItem(new_order_id, textbook.textbook_id, item.quantity)
+                    if item.checkout_type == 'rent':
+                        due_date = datetime.now() + timedelta(weeks=8) if item.duration == 8 else datetime.now() + timedelta(weeks=16)
+                        orderItem = OrderItem(new_order_id, textbook.textbook_id, item.quantity, due_date)
+                        final_price += textbook.price * Decimal('0.45') if item.duration == 8 else textbook.price * Decimal('0.70')
+                    else:
+                        orderItem = OrderItem(new_order_id, textbook.textbook_id, item.quantity)
+                        item_price = textbook.price
+                        curr_quantity = item.quantity
+                        final_price += item_price * curr_quantity
                     db.session.add(orderItem)
                     db.session.commit()
-                    item_price = textbook.price
-                    curr_quantity = item.quantity
-                    final_price += item_price * curr_quantity
             
             order.price = final_price
             db.session.commit()

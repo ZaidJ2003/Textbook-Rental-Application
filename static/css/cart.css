@@ -91,17 +91,46 @@ footer {
     text-align: left;
 }
 
+.search-textbook-left {
+    display: flex;
+    flex: 1;
+    margin-right: 15px;
+    align-items: center;
+    width: 63%;
+}
+
+.rentals-search-textbook-left {
+    display: flex;
+    flex: 1;
+    margin-right: 15px;
+    align-items: center;
+    width: 55%;
+}
+
+.rentals-search-textbook-right {
+    text-align: right;
+    display: flex;
+    gap: 2rem;
+    width: 43%;
+    margin-right: 2px;
+}
+
 .search-textbook-right {
     text-align: right;
     display: flex;
     gap: 2rem;
-    min-width: 15%;
+    width: 36%;
     margin-right: 2px;
 }
 
 .search-textbook-right p {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.7rem;
+}
+
+.rentals-search-textbook-right p {
+    margin: 0;
+    font-size: 1.4rem;
 }
 
 .book-container {
@@ -167,7 +196,6 @@ footer {
 .cart-headers {
     display: flex;
     font-size: x-large;
-    height: 10%;
     overflow: auto;
 }
 
@@ -177,15 +205,25 @@ footer {
 }
 
 .cart-headers-left {
-    width: 66%;
+    width: 63%;
+    justify-content: flex-start;
+}
+
+.rental-cart-headers-left {
+    width: 60%;
     justify-content: flex-start;
 }
 
 .cart-headers-right {
     display: flex;
-    justify-content: flex-start;
-    width: 34%;
+    width: 35%;
     gap: 1rem;
+}
+
+.rental-cart-headers-right {
+    display: flex;
+    width: 45%;
+    gap: 2.3rem;
 }
 
 .checkout-button {
@@ -210,5 +248,10 @@ footer {
 
 .hide {
     display: none;
+}
+
+.date {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
 }
 

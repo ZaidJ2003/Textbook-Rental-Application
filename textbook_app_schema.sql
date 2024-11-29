@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS cart_items (
     item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     cart_id UUID NOT NULL,
     textbook_id UUID NOT NULL,
+    checkout_type VARCHAR(10) NOT NULL DEFAULT 'buy',
+    duration INT DEFAULT NONE,
     quantity INT,
     FOREIGN KEY (cart_id) REFERENCES carts(cart_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
@@ -126,6 +128,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     item_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     order_id UUID NOT NULL,
     textbook_id UUID NOT NULL,
+    due_date TIMESTAMP,
     quantity INT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE

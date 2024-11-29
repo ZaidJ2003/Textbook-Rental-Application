@@ -37,12 +37,39 @@
                     <div class="buy-options">
                             <form action="/cart/{{ session['cart']['cart_id'] }}" method="post">
                                 <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                                <button class="book-buy-button">Add to Cart (Delivery Only)</button>
+                                <button class="book-buy-button">Purchase Textbook (Delivery Only)</button>
                             </form>
+                            <!-- <form action="/book/{{ textbook.textbook_id }}/rent" method="get">
+                                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                                <button class="book-buy-button">Rent Textbook (Delivery Only)</button>
+                            </form> -->
+                            <button class="book-buy-button" id="book-rent-button">Rent Textbook (Delivery Only)</button>
+                            <div class="popup" id="popup">
+                                <img src="/static/images/rent.png" alt="">
+                                <h1>Rent Textbook</h1>
+                                <div class="rental-duration">
+                                    <label for="duration">Rental Duration:</label>
+                                    <select id="duration" name="duration" required>
+                                        <option value="1">Half Semester (8 weeks)</option>
+                                        <option value="2">Full semester (16 weeks)</option>
+                                    </select>
+                                </div>
+                                <div class="price-summary">
+                                    <p>Total Rental Cost: $<span id="total-cost">{{ ((textbook.price | float) * 0.45) | round(2) }}</span></p>
+                                </div>
+                                <div class="popup-buttons">
+                                    <button type="submit" class="btn cancel-button btn-secondary" id="cancelButton">Cancel</button>
+                                    <form action="/book/{{ textbook.textbook_id }}/rent" method="post">
+                                        <input type="hidden" value="{{ session['cart']['cart_id'] }}" name="cart_id" id="cart_id">
+                                        <button type="submit" class="btn confirm-button btn-secondary" id="confirmButton">Add to Cart</button>
+                                    </form>
+                                </div>
+                            </div> 
+
                             <form action="/direct_messaging" method="get">
                                 <input type="hidden" name="seller_id" value="{{ textbook.owners_user_id }}">
                                 <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                                <button class="book-buy-button">Schedule Meetup (Pickup Only)</button>
+                                <button class="book-buy-button">Schedule Meetup With Seller (Pickup Only)</button>
                             </form>
                             <button class="book-buy-button" onclick="window.location.href='/view_meetup/{{ textbook.textbook_id }}'">View Meetup</button>
                     </div>
@@ -62,7 +89,7 @@
     </div> 
 
     <!-- If user is not owner display details of owner -->
-    {% if session['user']['user_id'] != textbook.owner.user_id %}
+    {% if 'user' in session and session['user']['user_id'] != textbook.owner.user_id %}
         <div class="bottom">
             <h1 class="mb-3 text-center">About The Owner</h1>
             <div class="card">
@@ -79,4 +106,33 @@
     {% endif %}
 
 </div>
+
+<script>
+    let popup = document.getElementById('popup');
+    const rentButton = document.getElementById('book-rent-button');
+    rentButton.addEventListener('click', openPopup);
+    const cancelButton = document.getElementById('cancelButton');
+    cancelButton.addEventListener('click', openPopup);
+    const confirmButton = document.getElementById('confirmButton');
+    confirmButton.addEventListener('click', openPopup);
+
+    function openPopup() {
+        popup.classList.toggle("open-popup");
+    }   
+
+    const rentalPrice = "{{ textbook.price }}" ;
+    const durationDropdown = document.getElementById('duration');
+    const totalCostSpan = document.getElementById('total-cost');
+
+    durationDropdown.addEventListener('change', function () {
+        const selectedValue = durationDropdown.value;
+        if (selectedValue == "1") {
+            totalCostSpan.textContent = (rentalPrice * .45).toFixed(2);
+        }
+        else {
+            totalCostSpan.textContent = (rentalPrice * .70).toFixed(2);
+        }
+    });
+
+</script>
 {% endblock %}
