@@ -14,7 +14,10 @@ body {
     "hd"
     "main"
     "ft";
-    margin: 0 0 var(--header-height) 0; 
+    margin: 0 0 var(--header-height) 0;
+    /* background-image: url('/static/images/backg4.jpg'); */
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 header {

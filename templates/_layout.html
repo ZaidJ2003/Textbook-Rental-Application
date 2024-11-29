@@ -17,6 +17,9 @@
         width: 100%;
         z-index: 10000;
     }
+    .navbar-brand img {
+        height: 20px;
+    }
 </style>
 
 <body>
@@ -46,7 +49,9 @@
         </section>
         <nav class="navbar navbar-expand-lg bg-body-tertiary"> 
             <div class="container-fluid">
-                <a class="navbar-brand" href="/"><span style="font-family: Lucida Console">Textbook Rental</span></a>
+                <a class="navbar-brand" href="/">
+                    <img src="/static/images/bblogo.png" alt="BookBorrow Logo">
+                </a>
                 <img src="/static\images\booksitelogoedit1 (1).png" alt="..." height="40">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,10 +66,13 @@
                             <a class="nav-link" href="/about">About</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/addDeleteTextbook">Manage Textbooks</a>
+                            <a class="nav-link" href="/search">Search Textbooks</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/direct_messaging">Direct Messages</a>
+                            <a class="nav-link" href="/addDeleteTextbook">Your Listings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/direct_messaging">Messages</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/orders">Orders</a>

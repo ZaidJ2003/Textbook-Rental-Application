@@ -75,19 +75,14 @@
         </form>
     </div>
 
+    <div class="contact-container">
+        <h1>Contact us</h1>
+        <img src="/static/images/booksitelogoedit1 (1).png" alt="BBLogo">
+        <p>Developer@bookborrow.com</p>
+    </div>
+
     {% if 'user' in session %}
         <div class="profile-container">
-            <form action="{{ url_for('profile') }}" method="GET">
-                <button type="submit" class = "button">Update Password (doesn't work yet)</button>
-            </form>
-            <form action="{{ url_for('profile') }}" method="GET">
-                <button type="submit" class = "button">Change Email (doesn't work yet)</button>
-            </form>
-            <!-- Added popup to confirm deletion of account. Kept old implementation by Zach in case if we want to rever - Zaid J -->
-            <!-- <form action="{{ url_for('deleteAccount') }}" method="GET"> -->
-                <!-- <button type="submit" class="red">Delete Account</button> -->
-            <!-- </form> -->
-
             <button type="submit" class="red" id="delButton">Delete Account</button>
             <div class="popup-delete alert alert-danger" id="popup">
                 <img src="/static/images/danger.webp" alt="">
