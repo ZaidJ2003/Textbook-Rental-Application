@@ -1,0 +1,89 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Cart</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/orders.css">
+<div class="container">
+    <div class="row">
+        <h1 class="text-center mt-4">Your Orders</h1>
+        <!-- <hr>
+        <div class="cart-headers">
+            <div class="cart-headers-left">
+                <div>Product</div>
+            </div>
+            <div class="cart-headers-right">
+                <div class="p-2">Quantity</div>
+                <div class="p-2">Price</div>
+                <div class="p-2">Status</div>
+            </div>
+        </div> -->
+        <hr>
+        {% if orders|length != 0 %}
+        <section class="cart-items-container">
+            {% for order_id, order_details in orders.items() %}
+                <div class="order-container">
+                    <div class="order-header mb-4">
+                            <h5>Order ID: {{order_id}}</h5>
+                            <h5>Status: {{order_details.status}}</h5>
+                            <h5>Total: ${{order_details.total_price}}</h5>
+                            <h5>Order Date: {{order_details.order_date}}</h5>
+                            {% if order_details.status == 'pending' or order_details.status == 'Pending' %}
+                                <h4><button class="order-btn" data-order-id="{{order_id}}" id="first_button">Move Order to Completed</button></h4>
+                                <div class="popup-confirm" id="popup-confirm">
+                                    <img src="/static/images/pickup.png" alt="">
+                                    <h2>Have you recieved your order?</h2>
+                                    <p>Confirming will move this order to complete</p>
+                                    <div class="popup-buttons">
+                                        <button type="submit" class="btn cancel-button mb-3" id="cancelButton">Cancel</button>
+                                        <form id="confirmPickupForm" class="meetup" method="post" action="/orders/{{order_id}}/confirm">
+                                            <input type="hidden" name="order_id" id="order_id" value="{{order_id}}">
+                                            <button type="submit" class="btn confirm-button" id="confirmButton">Confirm</button>
+                                        </form>
+                                    </div>
+                                </div> 
+                            {% endif %}
+                    </div>
+                    {% for item in order_details.orderItems %}
+                        <div class="order-product">
+                            <img src="{{ item.textbook.image_url }}" alt="{{ item.textbook.title }}" class="search-textbook-image">
+                            <div class="search-textbook-info">
+                                <h2 class="search-textbook-title">{{ item.textbook.title }}</h2>
+                                <p class="search-textbook-description">{{ item.textbook.description }}</p>
+                                <p class="quantity"> Quantity: {{ item.quantity }} </p>
+                                {% if item.due_date %}
+                                    <p class="quantity"> Due Date: {{ item.due_date.strftime("%B %d, %Y") }} </p>
+                                {% endif %}
+                            </div>
+                            <div class="search-textbook-right">
+                                <a href="/orders/{{item.textbook.textbook_id}}/rate-textbook"><h4><button class="order-btn">Rate Textbook</button></h4></a>
+                            </div>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </section>
+
+        {% else %}
+            <h2 class="mt-4">Your have not made any orders. Browse through our <a href="/search">books</a></p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+        let confirm_popup = document.getElementById('popup-confirm');
+        const first_button = document.getElementById('first_button');
+        first_button.addEventListener('click', openPopup);
+        const cancel_button = document.getElementById('cancelButton');
+        cancel_button.addEventListener('click', openPopup);
+        const confirm_button = document.getElementById('confirmButton');
+        confirm_button.addEventListener('click', openPopup);
+
+        function openPopup() {
+            confirm_popup.classList.toggle("open-popup");
+        }
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends '_layout.html' %}
+{% block title %}Book Details{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/addDeleteTextbook.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
+
+<h1 class="text-center manage-textbook-header">Add New Textbook</h2>
+
+<div class="search-textbook-list">
+    <form action="{{ url_for('add_textbook') }}" method="POST" enctype="multipart/form-data" class="search-textbook-form">
+        <div class="search-textbook-image-form">
+            <input type="file" id="image" name="image" accept="image/png, image/jpeg, image/jpg">
+            <label for="image" class="custom-file-label">
+                <img id="preview-image" src="" alt="Uploaded Image" style="display: none;">
+                <span class="plus-sign">+</span>
+                <span class="label-text">Add Image</span>
+            </label>
+        </div>          
+        <div class="search-textbook-info-form">
+            <label for="title" class="search-textbook-title-form text-center">Title</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div class="search-textbook-info-form">
+            <label for="description" class="search-textbook-description-form text-center">Description</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+        <div class="search-textbook-price-form">
+            <label for="price" class="text-center">Price (USD)</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+            <input type="hidden" id="cropped-image" name="cropped_image">
+        </div>
+        <button class="btn btn-primary" type="submit">Add Textbook</button>
+    </form>
+
+    <h1 class="text-center manage-textbook-header">Your Textbooks</h2>
+
+    {% for textbook in textbooks %}
+    <form action="{{ url_for('del_textbook') }}" method="get" onsubmit="return confirmDelete();">
+        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+        <div class="search-textbook">
+            <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
+            <div class="search-textbook-info">
+                <h2 class="search-textbook-title">{{ textbook.title }}</h2>
+                <p class="search-textbook-description">{{ textbook.description }}</p>
+            </div>
+            <div class="search-textbook-price">
+                <p>${{ textbook.price }}</p>
+            </div>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+    </form>
+    {% endfor %}
+</div>
+
+<div id="crop-modal" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="crop-container">
+                <img id="crop-image" src="">
+            </div>
+            <button id="crop-button" class="crop-action-button">Crop</button>
+            <button id="cancel-button" class="crop-action-button">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script>
+    const imageInput = document.getElementById("image");
+    const previewImage = document.getElementById("preview-image");
+    const cropImage = document.getElementById("crop-image");
+    const cropModal = document.getElementById("crop-modal");
+    const cropButton = document.getElementById("crop-button");
+    const cancelButton = document.getElementById("cancel-button");
+
+    let cropper;
+
+    imageInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                cropImage.src = e.target.result;
+                cropModal.style.display = "flex";
+                cropper = new Cropper(cropImage, {
+                    aspectRatio: 2 / 3,
+                    viewMode: 1,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    cropButton.addEventListener("click", function () {
+        const croppedCanvas = cropper.getCroppedCanvas();
+        const croppedImageDataUrl = croppedCanvas.toDataURL("image/png");
+        document.getElementById("cropped-image").value = croppedImageDataUrl;
+
+
+        previewImage.src = croppedImageDataUrl;
+        previewImage.style.display = "block";
+        cropModal.style.display = "none";
+
+        document.querySelector(".plus-sign").style.display = "none";
+        document.querySelector(".label-text").style.display = "none";
+
+        cropper.destroy();
+    });
+
+    cancelButton.addEventListener("click", function () {
+        cropModal.style.display = "none";
+        cropper.destroy();
+    });
+</script>
+<script>
+    function confirmDelete() {
+        return confirm("Are you sure you want to delete this textbook?");
+    }
+    </script>
+{% endblock %}

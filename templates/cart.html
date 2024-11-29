@@ -1,0 +1,115 @@
+{% extends '_layout.html' %}
+
+{% block title %}
+<title>Cart</title>
+{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/cart.css">
+<div class="container">
+    <div class="row">
+        {% if cart|length != 0 or rentals|length != 0 %}
+        <section class="cart-items-container">
+            {% if cart|length != 0 %}
+            <h1 class="text-center mt-4">Delivery Cart</h1>
+            <hr>
+            <div class="cart-headers">
+                <div class="cart-headers-left">
+                    <div>Product</div>
+                </div>
+                <div class="cart-headers-right">
+                    <div class="p-2">Quantity</div>
+                    <div class="p-2">Unit Price</div>
+                    <div class="p-2">Price</div>
+                </div>
+            </div>
+            <hr>
+            {% for id, textbook in cart.items() %}
+            <div class="search-textbook">
+
+                <div class="search-textbook-left">
+                    <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
+                    <div class="search-textbook-info">
+                        <h2 class="search-textbook-title">{{ textbook.title }}</h2>
+                        <p class="search-textbook-description">{{ textbook.description }}</p>
+                    </div>
+                </div>
+
+                <div class="search-textbook-right">
+                    <form action="/cart/update/{{ session['cart']['cart_id'] }}" class="cart-form" method="POST">
+                        <input type="hidden" name="textbook_id" id="textbook_id" value="{{ id }}">
+                        <select name="textbook_quantity" id="textbook_quantity" class="quantity-input form-outline form-select form-select-sm" onchange="this.form.submit()">
+                            {% for i in range(1, 10) %}
+                            <option value="{{ i }}" {% if i == textbook.quantity %}selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    <p class="unit-price">${{ textbook.price }}</p>
+                    <p class="total-price">${{ textbook.total }}</p>
+                    <form action="/cart/delete/{{ session['cart']['cart_id'] }}" class="cart-form" method="POST">
+                        <input type="hidden" name="textbook_id" id="textbook_id" value="{{ id }}">
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                    </form>
+                </div>
+                
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if rentals|length != 0 %}
+            <h2 class="text-center mt-4">Rentals</h2>
+            <hr>
+            <div class="cart-headers">
+                <div class="rental-cart-headers-left">
+                    <div>Product</div>
+                </div>
+                <div class="rental-cart-headers-right">
+                    <div class="p-2">Duration</div>
+                    <div class="p-2">Due Date</div>
+                    <div class="p-2">Price</div>
+                </div>
+            </div>
+            <hr>
+            {% for id, rental in rentals.items() %}
+            <div class="search-textbook">
+                <div class="rentals-search-textbook-left">
+                    <img src="{{ rental.image_url }}" alt="{{ rental.title }}" class="search-textbook-image">
+                    <div class="search-textbook-info">
+                        <h2 class="search-textbook-title">{{ rental.title }}</h2>
+                        <p class="search-textbook-description">{{ rental.description }}</p>
+                    </div>
+                </div>
+                <div class="rentals-search-textbook-right">
+                    <p class="unit-price">{{ rental.duration }} Weeks</p>
+                    <p class="date">{{ rental.due_date.strftime("%B %d, %Y") }}</p>
+                    <p class="total-price">${{ rental.price|round(2) }}</p>
+
+                    <form action="/cart/delete/{{ session['cart']['cart_id'] }}" class="cart-form" method="POST">
+                        <input type="hidden" name="textbook_id" id="textbook_id" value="{{ id }}">
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </section>
+        <h3 class="text-center">
+            <a href="/search">Continue shopping before checking out</a>
+        </h3>
+        <section class="checkout">
+            <h1 class="text-center mt-2">Order Summary</h1>
+            <hr>
+            <h3>Original Price: ${{ total|round(2) }}</h3>
+            <h3>Number of items: {{ session['cart']['quantity'] }}</h3>
+            <hr>
+            <h2>Total: ${{ final_price }}</h2>
+            <form action="/create-checkout-session" method="post">
+                <button type="submit" class="checkout-button mb-4 mt-4">Checkout</button>
+            </form>
+        </section>
+        {% else %}
+        <h2 class="mt-4">Your cart is empty. Add <a href="/search">books</a> to checkout</h2>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
