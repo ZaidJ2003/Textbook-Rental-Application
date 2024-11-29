@@ -1102,7 +1102,7 @@ def reset_password(token):
 def get_orders():
     if 'user' not in session:
         flash(not_logged_in_message, 'error')
-        return redirect('/')
+        return redirect('/login')
     orders = {}
     user_orders = Order.query.filter_by(user_id = session['user']['user_id']).all()
     for order in user_orders:
