@@ -109,6 +109,23 @@ footer {
     height: 50px;
 }
 
+.bottom-left-button {
+    position: fixed;
+    bottom: 50px;
+    left: 20px;
+}
+
+.bottom-left-button button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.bottom-left-button img {
+    width: 35px;
+    height: 30px;
+}
 /* Testemonial content */
 .content {
     grid-column: 2 / 10;
