@@ -89,7 +89,7 @@
     </div> 
 
     <!-- If user is not owner display details of owner -->
-    {% if session['user']['user_id'] != textbook.owner.user_id %}
+    {% if 'user' in session and session['user']['user_id'] != textbook.owner.user_id %}
         <div class="bottom">
             <h1 class="mb-3 text-center">About The Owner</h1>
             <div class="card">
