@@ -246,7 +246,7 @@ def add_textbook():
             return redirect(url_for('addDeleteTextbook'))
 
         else:
-            flash('No image data received.', category='error')
+            flash('Please select an image for the book.', category='error')
             return redirect(url_for('addDeleteTextbook'))
 
     return render_template('addDeleteTextbook.html')
