@@ -14,7 +14,10 @@ body {
     "hd"
     "main"
     "ft";
-    margin: 0 0 var(--header-height) 0; 
+    margin: 0 0 var(--header-height) 0;
+    background-image: url('/static/images/backg1.jpg');
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 header {
@@ -82,6 +85,14 @@ footer {
     object-fit: cover;
     margin: 0 auto; 
     display: block;
+    border: 8px solid #A49665;
+}
+
+.main-image {
+    width: 400px;
+    height: 200px;
+    margin: 0 auto; 
+    display: block;
 }
 
 /* Resused classes */
@@ -116,6 +127,7 @@ footer {
 /* Utility Classes */
 .bold-800 {
     font-weight: 800;
+    color: #005035;
 }
 
 .bold-500 {
@@ -124,14 +136,17 @@ footer {
 
 .bold-300 {
     font-weight: 300;
+    color: #fff;
 }
 
 .fs-large {
     font-size: 55px;
+    -webkit-text-stroke: 1px #fff;
 }
 
 .fs-medium {
     font-size: 35px;
+    -webkit-text-stroke: 1px #fff;
 }
 
 .center {
@@ -148,4 +163,8 @@ p {
     color: #555; 
     font-size: 1rem;
     line-height: 1.6;
+}
+
+.fas {
+    color: #A49665;
 }

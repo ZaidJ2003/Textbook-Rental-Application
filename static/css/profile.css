@@ -15,6 +15,9 @@ body {
     "main"
     "ft";
     margin: 0 0 var(--header-height) 0; 
+    background-image: url('/static/images/backg2.jpg');
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 header {

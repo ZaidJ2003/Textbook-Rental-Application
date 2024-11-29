@@ -47,7 +47,7 @@
 .search-textbook {
     display: flex;
     align-items: center;
-    border: 2px solid #41aea9;
+    border: 1px solid #41aea9;
     padding: 10px;
     margin-left: 10px;
     margin-right: 10px;
@@ -198,6 +198,20 @@ main {
     background-color: #79f7fa;
 }
 
+.button1-form {
+    background-color: #41aea9;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button1-form:hover {
+    background-color: #369a94;
+}
+
 footer {
     grid-area: ft;
     background-color: #34495e;
@@ -263,36 +277,40 @@ footer {
     margin: 10px;
 }
 
-
-
-
-
-
-
-
-
-
-
 .search-textbook-form {
     display: flex;
+    flex-direction: column;
     align-items: center;
     border: 2px solid #41aea9;
-    padding: 10px;
-    margin-left: 10px;
-    margin-right: 10px;
-    border-radius: 5px;
+    padding: 20px;
+    border-radius: 10px;
     background-color: #f9f9f9;
-    justify-content: space-between;
-    width: 99%;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.search-textbook-image-form {
-    width: 100px;
-    height: 150px;
-    object-fit: cover;
-    margin-right: 10vw;
+.search-textbook-image-form label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px dashed #41aea9;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
 }
 
+.search-textbook-image-form label:hover {
+    background-color: #e0f7f5;
+}
+
+.search-textbook-image-form img {
+    max-width: 100px;
+    margin-bottom: 10px;
+}
 
 .search-textbook-image-form input[type="file"] {
     display: none;
@@ -339,28 +357,50 @@ footer {
     border-radius: 8px; 
 }
 
-.search-textbook-info-form {
-    flex: 1;
-    margin-right: 15px;
-}
-
-.search-textbook-title-form {
-    margin: 0;
-    text-align: left;
-}
-
-.search-textbook-description-form {
-    margin-top: 10px;
-    font-size: 1rem;
-    color: #666;
-    text-align: left;
-}
-
+.search-textbook-info-form,
 .search-textbook-price-form {
-    text-align: right;
-    min-width: 100px;
-    margin-right:10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
 }
+
+.search-textbook-info-form label,
+.search-textbook-price-form label {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.search-textbook-info-form input,
+.search-textbook-info-form textarea {
+    font-size: 1rem;
+    color: #333;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.search-textbook-price-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.search-textbook-info-form textarea {
+    resize: vertical;
+}
+
+.search-textbook-title-form,
+.search-textbook-description-form {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
 
 .search-textbook-price-form p {
     margin: 0;
@@ -408,4 +448,35 @@ footer {
 
 .crop-action-button:hover {
     background-color: #319d95;
+}
+
+h2 {
+    font-size: 2rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+p {
+    font-size: 1.2rem;
+    color: #555;
+    text-align: center;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+
+.button1-form {
+    background-color: #41aea9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button1-form:hover {
+    background-color: #369a94;
 }

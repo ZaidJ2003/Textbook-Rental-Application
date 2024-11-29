@@ -5,8 +5,8 @@
 <link rel="stylesheet" href="/static/css/addDeleteTextbook.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
 
-<h2>Your Textbooks</h2>
-<p>Click textbook to delete</p>
+<h2>Here You Can Manage Your Textbooks!</h2>
+<p>Click a textbook to delete or view details</p>
 
 <div class="search-textbook-list">
     <form action="{{ url_for('add_textbook') }}" method="POST" enctype="multipart/form-data" class="search-textbook-form">
@@ -33,19 +33,26 @@
     </form>
 
     {% for textbook in textbooks %}
-    <form action="{{ url_for('del_textbook') }}" method="get" onsubmit="return confirmDelete();">
-        <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-        <button type="submit" class="search-textbook">
-            <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
-            <div class="search-textbook-info">
-                <h2 class="search-textbook-title">{{ textbook.title }}</h2>
-                <p class="search-textbook-description">{{ textbook.description }}</p>
-            </div>
-            <div class="search-textbook-price">
-                <p>{{ textbook.price }}</p>
-            </div>
-        </button>
-    </form>
+    <div class="search-textbook">
+        <img src="{{ textbook.image_url }}" alt="{{ textbook.title }}" class="search-textbook-image">
+        <div class="search-textbook-info">
+            <h2 class="search-textbook-title">{{ textbook.title }}</h2>
+            <p class="search-textbook-description">{{ textbook.description }}</p>
+        </div>
+        <div class="search-textbook-price">
+            <p>${{ textbook.price }}</p>
+        </div>
+        <div class="search-textbook-actions">
+            <form action="{{ url_for('del_textbook') }}" method="get" onsubmit="return confirmDelete();">
+                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                <button type="submit" class="button1-form">Delete</button>
+            </form>
+            <form action="{{ url_for('book') }}" method="get">
+                <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
+                <button type="submit" class="button1-form">View</button>
+            </form>
+        </div>
+    </div>
     {% endfor %}
 </div>
 
@@ -94,7 +101,6 @@
         const croppedImageDataUrl = croppedCanvas.toDataURL("image/png");
         document.getElementById("cropped-image").value = croppedImageDataUrl;
 
-
         previewImage.src = croppedImageDataUrl;
         previewImage.style.display = "block";
         cropModal.style.display = "none";
@@ -114,5 +120,6 @@
     function confirmDelete() {
         return confirm("Are you sure you want to delete this textbook?");
     }
-    </script>
+</script>
+    
 {% endblock %}
