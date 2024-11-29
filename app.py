@@ -635,7 +635,7 @@ def get_cart(cart_id):
                 'total' : (item.quantity * textbook.price)
             }
         elif textbook and item.checkout_type == 'rent':
-            rental_price = textbook.price * Decimal('0.45') if item.duration == 8 else textbook.price * Decimal('0.45') 
+            rental_price = textbook.price * Decimal('0.45') if item.duration == 8 else textbook.price * Decimal('0.70') 
             due_date = datetime.now() + timedelta(weeks=8) if item.duration == 8 else datetime.now() + timedelta(weeks=16)
             total += float(rental_price)
             rentals[textbook.textbook_id] = {
@@ -657,7 +657,14 @@ def add_cart_item(cart_id):
         return redirect('/login')
     textbook_id = request.form.get('textbook_id')
     if not textbook_id:
-        abort(404)
+        flash('Something went wrong. Please try again')
+        return redirect(request.referrer)
+
+    cart = Cart.query.filter_by(cart_id=cart_id).first()
+    if not cart:
+        flash('Something went wrong', category='error')
+        return redirect(request.referrer)
+
     textbook = CartItem.query.filter(
     and_(CartItem.cart_id == cart_id, CartItem.textbook_id == textbook_id)).first()
 
@@ -803,25 +810,6 @@ def view_meetup(textbook_id):
     else:
         flash('Meetup location has not been set for this book yet', category='error')
         return redirect(request.referrer)
-    
-# meetup page to view location. buyer will be redirected here when clicking the Meetup Location button from convo
-# @app.get('/meetup/<uuid:conversation_id>/view')
-# def meetup_page(conversation_id):
-#     # template to view location. check if meetup location exists in convo with conevrsation_id passed in then return google maps view of location or
-#     # infrom user location has not been set yet by seller
-#     return render_template('meetup_location.html')
-
-# # meetup page to set or edit location. Seller will be redirected here when clicking the Meetup Locaiton button from convo
-# @app.get('/meetup/<uuid:conversation_id>/edit')
-# def get_location_form(conversation_id):
-#     # return template of form to set location page
-#     return render_template('meetup.html')
-
-# # post request when form of edit/set location page is submitted. This will be the form action of the form in the meetup page with form
-# @app.post('/meetup/<uuid:conversation_id>')
-# def send_location_form(conversation_id):
-#     # process form results and query the conversation with conversation_id passed in to update conversation location
-#     return render_template('')
 
 # To test checkout, reference STRIPE API TEST documentation or enter 
 # '4242 4242 4242 4242' as credit card 
@@ -837,6 +825,8 @@ def checkout():
     for item in cart_items:
         textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
         if textbook:
+            if item.checkout_type == 'rent': 
+                curr_price = textbook.price * Decimal('.45') if item.duration == 8 else textbook.price * Decimal('.70')
             line_items.append({
                 'price_data': {
                     'currency' : 'usd',
@@ -844,7 +834,7 @@ def checkout():
                         'name' : textbook.title,
                         'description' : textbook.description
                     },
-                    'unit_amount' : int((textbook.price * 100)),
+                    'unit_amount' : int((curr_price * 100)),
                 },
                 'quantity': item.quantity,
             })
