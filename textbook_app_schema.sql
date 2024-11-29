@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     cart_id UUID NOT NULL,
     textbook_id UUID NOT NULL,
     checkout_type VARCHAR(10) NOT NULL DEFAULT 'buy',
-    duration INT DEFAULT NONE,
+    duration INT,
     quantity INT,
     FOREIGN KEY (cart_id) REFERENCES carts(cart_id) ON DELETE CASCADE,
     FOREIGN KEY (textbook_id) REFERENCES textbooks(textbook_id) ON DELETE CASCADE
