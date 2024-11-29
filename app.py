@@ -474,7 +474,7 @@ def login_user():
 
     return redirect('/login')
 
-@app.post('/logout')
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     if 'user' in session:
         user_repository_singleton.logout_user()
@@ -612,24 +612,24 @@ def get_cart(cart_id):
         return redirect('/login')
     cart_items_dict = {}
     total = 0.00
-    if 'cart' in session:
-        # for id, value in session['cart'].items():
-        #     textbook = Textbook.query.filter(Textbook.textbook_id == id).first()
-        #     if textbook:
-        #         cart_books[textbook] = value
-        cart_items = CartItem.query.filter(CartItem.cart_id == cart_id).all()
-        for item in cart_items:
-            textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
-            if textbook:
-                total += float(textbook.price * item.quantity)
-                cart_items_dict[textbook.textbook_id] = {
-                    'title' : textbook.title,
-                    'description' : textbook.description,
-                    'price' : textbook.price,
-                    'quantity' : item.quantity,
-                    'image_url': textbook.image_url,
-                    'total' : (item.quantity * textbook.price)
-                }
+
+    cart = Cart.query.filter_by(cart_id=cart_id).first()
+    if not cart:
+        return "Cart not found", 404
+
+    cart_items = CartItem.query.filter(CartItem.cart_id == cart_id).all()
+    for item in cart_items:
+        textbook = Textbook.query.filter(Textbook.textbook_id == item.textbook_id).first()
+        if textbook:
+            total += float(textbook.price * item.quantity)
+            cart_items_dict[textbook.textbook_id] = {
+                'title' : textbook.title,
+                'description' : textbook.description,
+                'price' : textbook.price,
+                'quantity' : item.quantity,
+                'image_url': textbook.image_url,
+                'total' : (item.quantity * textbook.price)
+            }
     # tax = round(total * .0475,2)
     final_price = round(total, 2)
     return render_template('cart.html', cart = cart_items_dict, total = total, final_price = final_price)
