@@ -42,11 +42,13 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    align-items: center;
 }
 
 .search-textbook {
     display: flex;
     align-items: center;
+    border: 1px solid #41aea9;
     border: 1px solid #41aea9;
     padding: 10px;
     margin-left: 10px;
@@ -213,6 +215,20 @@ main {
     background-color: #369a94;
 }
 
+.button1-form {
+    background-color: #41aea9;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button1-form:hover {
+    background-color: #369a94;
+}
+
 footer {
     grid-area: ft;
     background-color: #34495e;
@@ -281,8 +297,11 @@ footer {
 .search-textbook-form {
     display: flex;
     flex-direction: column;
+    flex-direction: column;
     align-items: center;
     border: 2px solid #41aea9;
+    padding: 20px;
+    border-radius: 10px;
     padding: 20px;
     border-radius: 10px;
     background-color: #f9f9f9;
@@ -360,12 +379,30 @@ footer {
 
 .search-textbook-info-form,
 .search-textbook-price-form {
+.search-textbook-info-form,
+.search-textbook-price-form {
     display: flex;
     flex-direction: column;
     width: 100%;
     margin-bottom: 20px;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
+.search-textbook-info-form label,
+.search-textbook-price-form label {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.search-textbook-info-form input,
+.search-textbook-info-form textarea {
+    font-size: 1rem;
+    color: #333;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
 .search-textbook-info-form label,
 .search-textbook-price-form label {
     margin-bottom: 5px;
@@ -395,12 +432,30 @@ footer {
 }
 
 .search-textbook-title-form,
+.search-textbook-price-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.search-textbook-info-form textarea {
+    resize: vertical;
+}
+
+.search-textbook-title-form,
 .search-textbook-description-form {
     font-size: 1rem;
     color: #333;
     margin-bottom: 10px;
     font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
 }
+
 
 
 .search-textbook-price-form p {

@@ -128,6 +128,7 @@ footer {
 .bold-800 {
     font-weight: 800;
     color: #005035;
+    color: #005035;
 }
 
 .bold-500 {
@@ -137,10 +138,12 @@ footer {
 .bold-300 {
     font-weight: 300;
     color: #fff;
+    color: #fff;
 }
 
 .fs-large {
     font-size: 55px;
+    -webkit-text-stroke: 1px #fff;
     -webkit-text-stroke: 1px #fff;
 }
 
