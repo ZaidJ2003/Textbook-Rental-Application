@@ -40,7 +40,7 @@ class AppTestCase(unittest.TestCase):
             title='Test Book',
             author='Test Author',
             isbn='1234567890',
-            price='9.99'
+            price='99.99'
         ))
         print(f"test_add_textbook status code: {response.status_code}")
         self.assertIn(response.status_code, [200, 302])
@@ -159,7 +159,7 @@ class AppTestCase(unittest.TestCase):
     def test_register_user(self):
         response = self.app.post('/register', data=dict(
             username='newuser',
-            email='newuser@example.com',
+            email='newuser@uncc.edu',
             password='newpassword',
             confirm_password='newpassword'
         ))
@@ -227,7 +227,7 @@ class AppTestCase(unittest.TestCase):
 
     def test_send_password_request(self):
         response = self.app.post('/request_password_reset', data=dict(
-            email='test@example.com'
+            email='test@uncc.edu'
         ))
         print(f"test_send_password_request status code: {response.status_code}")
         self.assertIn(response.status_code, [200, 302])
@@ -268,7 +268,7 @@ class AppTestCase(unittest.TestCase):
     def test_submit_rate_textbook_page(self):
         response = self.app.post(f'/orders/{str(uuid4())}/rate-textbook', data=dict(
             rating=5,
-            comment='Great book!'
+            comment='ok now this is epic'
         ))
         print(f"test_submit_rate_textbook_page status code: {response.status_code}")
         self.assertIn(response.status_code, [200, 302])
@@ -280,7 +280,7 @@ class AppTestCase(unittest.TestCase):
         response = self.client.post('/create_meetup', data={
             'meeting_description': 'Test meeting',
             'start_time': '2024-11-28T3:00',
-            'end_time': '2023-11-28T4:00',
+            'end_time': '2024-11-28T4:00',
             'user_address': '9201 University City Boulevard Charlotte, NC 28223-0001',
             'textbook_id': '1'
         })
