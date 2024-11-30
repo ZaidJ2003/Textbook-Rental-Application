@@ -1,0 +1,23 @@
+{% extends '_layout.html' %}
+
+{% block title %}<title>Most Sold</title>{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="/static/css/mostSold.css">
+
+    <h1 class="text-center">Most Sold Book</h1>
+    {% if book %}
+    <div class="search-textbook">
+        <img src="{{ book.image_url }}" alt="{{ book.title }}" class="search-textbook-image">
+        <div class="search-textbook-info">
+            <h2 class="search-textbook-title text-center">Title: {{ book.title }}</h2>
+            <p class="search-textbook-description text-center">Description: {{ book.description }}</p>
+        </div>
+        <div class="search-textbook-price">
+            <p>Price: {{ book.price }}</p>
+        </div>
+    </div>
+    {% else %}
+        <p class="no-data">No sales data available. Please check back later!</p>
+    {% endif %}
+{% endblock %}

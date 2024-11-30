@@ -69,7 +69,7 @@ footer {
 
 /* Third and forth row - team content styles */
 .team-content {
-    grid-column: 3 / 9;
+    grid-column: 2 / 10;
     width: 100%;
 }
 
