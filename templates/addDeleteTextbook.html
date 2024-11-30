@@ -49,7 +49,7 @@
         <div class="search-textbook-actions">
             <form action="{{ url_for('del_textbook') }}" method="get" onsubmit="return confirmDelete();">
                 <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">
-                <button type="submit" class="button1-form">Delete</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
             </form>
             <form action="{{ url_for('book') }}" method="get">
                 <input type="hidden" name="textbook_id" value="{{ textbook.textbook_id }}">

@@ -1164,23 +1164,32 @@ def submit_rate_textbook_page(textbook_id):
     flash('Something went wrong. Unable to leave rating', category='error')
     return redirect('/orders')
     
-# Endpoint for searching a user - will finish later
-# @app.post('/message_search')
-# def search_users():
-#     str_query = request.form.get('str_query', '').lower()
-#     filtered_users = None
-#     selected_conversation = None
-#     if str_query:
-#         filtered_users = users.query.filter(
-#             or_(
-#                 users.first_name.ilike(f'%{str_query}%'),
-#                 users.last_name.ilike(f'%{str_query}%')
-#             )
-#         ).all()
+@app.route('/mostSold')
+def most_sold():
+    all_orders = OrderItem.query.all() 
+    max_quantity_sold = 0
+    textbooks = {}
     
-#     return render_template('direct_messaging.html', conversations = filtered_users, selected_conversation = selected_conversation)
-#         return jsonify( {"filtered_users": [filtered_users]} )
-#     return jsonify( {"filtered_users": []} )
+    for order_item in all_orders:
+        textbook = Textbook.query.filter_by(textbook_id=order_item.textbook_id).first()
+        if not textbook:
+            flash('Something went wrong', category='error')
+            return redirect(request.referrer)
+        
+        if textbook.textbook_id in textbooks:
+            textbooks[textbook.textbook_id] += order_item.quantity
+        else:
+            textbooks[textbook.textbook_id] = order_item.quantity
+    
+    most_sold_book = None
+    max_quantity_sold = 0
+    for textbook_id, quantity in textbooks.items():
+        if quantity > max_quantity_sold:
+            most_sold_book = Textbook.query.filter_by(textbook_id=textbook_id).first()
+            max_quantity_sold = quantity
+    
+    # Render the result
+    return render_template('mostSold.html', book=most_sold_book)
 
 if __name__ == '__main__':
     app.run(debug=True)
