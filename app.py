@@ -508,10 +508,10 @@ def register_user():
         flash('Please fill out all of the fields', category='error')
         return redirect('/register')
 
-    # Check if email contains UNCC domain
-    if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
-        flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
-        return redirect('/register')
+    # # Check if email contains UNCC domain - commenting out for easier testing and usage for TA's
+    # if not (user_email.lower().endswith('charlotte.edu') or user_email.lower().endswith('uncc.edu')):
+    #     flash('Must be a UNCC student/faculty to register. Please use your UNCC email.', category='error')
+    #     return redirect('/register')
 
     current_user = users.query.filter((func.lower(users.username) == user_username.lower()) | 
     (func.lower(users.email) == user_email.lower())).first()
