@@ -15,8 +15,6 @@ body {
     "main"
     "ft";
     margin: 0 0 var(--header-height) 0; 
-    background-size: cover;
-    background-attachment: fixed;
 }
 
 header {
